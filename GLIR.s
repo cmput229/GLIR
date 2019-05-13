@@ -24,6 +24,8 @@
 # Author: Austin Crapo
 # Date: June 2017
 # Version: 2017.8.24
+# Conversion to RISC-V: Taylor Zowtuk
+# Date: May 2019
 #
 #
 # Does not support being run in a tab; Requires a separate window.
@@ -85,12 +87,12 @@ setCursor:
 	# a1 = col number to move to
 	#
 	# Register Usage
-	# Overwrites a0 and a0 during operation
+	# Overwrites a0 during operation
 	########################################################################
 	# Stack Adjustments
-	addi	sp, sp, -4		# Adjust the stack to save s0
-	sw	s0, 0(sp)		# Save s0
-	add	s0, zero, sp		# s0 <= sp
+	addi	sp, sp, -4		# Adjust the stack to save fp
+	sw	s0, 0(sp)		# Save fp
+	add	s0, zero, sp		# fp <= sp
 	addi	sp, sp, -12		# Adjust stack to save variables
 	sw	ra, -4(s0)		# Save ra
 	#skip s1, this could be cleaned up
@@ -105,14 +107,14 @@ setCursor:
 	#for the char coords. We translate the args to decimal chars and edit
 	# the command string, then print
 	
-	move	s2, a0
-	move	s3, a1
+	mv		s2, a0	# s2 <- row
+	mv		s3, a1	# s3 <- col
 	
 	# NOTE: we add 1 to each coordinate because we want (0,0) to be the top
 	# left corner of the screen, but most terminals define (1,1) as top left
 	#ROW
 	addi	a0, s2, 1
-	la	t2, setCstring
+	la	t2, setCstring		# NOTE: improper register useage conventions
 	jal	intToChar
 	lb	t0, 0(a0)
 	sb	t0, 5(t2)
@@ -186,15 +188,15 @@ printString:
 	# t0 - t3, t4-t2 = temp storage of bytes and values
 	########################################################################
 	# Stack Adjustments
-	addi	sp, sp, -4		# Adjust the stack to save s0
-	sw	s0, 0(sp)		# Save s0
-	add	s0, zero, sp		# s0 <= sp
+	addi	sp, sp, -4		# Adjust the stack to save fp
+	sw	s0, 0(sp)		# Save fp
+	add	s0, zero, sp		# fp <= sp
 	addi	sp, sp, -8		# Adjust stack to save variables
 	sw	ra, -4(s0)		# Save ra
 	sw	s1, -8(s0)		# Save s1
 	
 	
-	#terminal automatically regects negative values, not certain why, but not checking for it either
+	#terminal automatically rejects negative values, not certain why, but not checking for it either
 	la	t0, TERM_ROWS	#check if past boundary
 	lw	t0, 0(t0)
 	slt	t0, t0, a1	#if TERM_ROWS < print row
@@ -206,12 +208,11 @@ printString:
 	or	t0, t0, t1
 	bne	t0, zero, pSend	#do nothing
 	
-				#else
+	#else
+	mv		s1, a0
 	
-	move	s1, a0
-	
-	move	a0, a1
-	move	a1, a2
+	mv		a0, a1
+	mv		a1, a2
 	jal	setCursor
 	
 	#print the char
@@ -292,7 +293,7 @@ batchPrint:
 	li	s8, -1		#lastBG = -1
 	
 	
-	move	s1, a0		#scanner = list
+	mv		s1, a0		#scanner = list
 	#for item in list
 	bPscan:
 		#extract row and col to vars
@@ -314,60 +315,57 @@ batchPrint:
 		li	t0, 1		#if pcode == 1
 		beq	s4, t0, bPscCend
 		bPsclearColor:
-			li	t0, -1	#if lastFG != -1 
-			bne	s7, t0, bPscCreset
-			bne	s8, t0, bPscCreset	#OR lastBG != -1:
-			j	bPscCend
+			li	t0, -1	
+			bne	s7, t0, bPscCreset	#if lastFG != -1 
+			bne	s8, t0, bPscCreset	#OR lastBG != -1
+			jal		x0, bPscCend
 			bPscCreset:
 				jal	restoreSettings
 				li	s7, -1
 				li	s8, -1
-		bPscCend:
-		
+
+		bPscCend:		
 		#change foreground color if needed
 		li	t0, 2		#if pcode == 2 or pcode == 4
 		beq	s4, t0, bPFGColor
 		li	t0, 4
 		beq	s4, t0, bPFGColor
-		j	bPFCend
+		jal		x0, bPFCend
 		bPFGColor:
 			lbu	t0, 5(s1)
 			beq	t0, s7, bPFCend	#if color != lastFG
-				move	s7, t0	#store to lastFG
-				move	a0, t0	#set as FG color
+				mv		s7, t0	#store to lastFG
+				mv		a0, t0	#set as FG color
 				li	a1, 1
 				jal	setColor
-		bPFCend:
-		
+
+		bPFCend:		
 		#change background color if needed
-		li	t0, 3		#if pcode == 2 or pcode == 4
+		li	t0, 3		#if pcode == 3 or pcode == 4
 		beq	s4, t0, bPBGColor
 		li	t0, 4
 		beq	s4, t0, bPBGColor
-		j	bPBCend
+		jal		x0, bPBCend
 		bPBGColor:
 			lbu	t0, 6(s1)
 			beq	t0, s8, bPBCend	#if color != lastBG
-				move	s8, t0	#store to lastBG
-				move	a0, t0	#set as BG color
+				mv		s8, t0	#store to lastBG
+				mv		a0, t0	#set as BG color
 				li	a1, 0
 				jal	setColor
-		bPBCend:
-		
-		
+
+		bPBCend:		
 		#then print string to (row, col)
 		lw	a0, 8(s1)
-		move	a1, s2
-		move	a2, s3
+		mv		a1, s2
+		mv		a2, s3
 		jal	printString
 		
 		bPscont:
 		addi	s1, s1, 12
-		j	bPscan
-	bPsend:
+		jal		x0, bPscan
 
-	
-	
+	bPsend:	
 	#Stack Restore
 	lw	ra, -4(s0)
 	lw	s1, -8(s0)
@@ -390,9 +388,9 @@ intToCharSpace:
 .text
 intToChar:
 	########################################################################
-	# Given an int x where 0 <= x <= 9999, converts the integer into 3 bytes,
+	# Given an int x where 0 <= x <= 9999, converts the integer into 4 bytes,
 	# which are the character representation of the int. If the integer
-	# requires larger than 3 chars to represent, only the 3 least 
+	# requires larger than 4 chars to represent, only the 4 least 
 	# significant digits will be converted.
 	#
 	# a0 = integer to convert
@@ -483,14 +481,14 @@ setColor:
 	sw	s1, -8(s0)		
 	sw	s2, -12(s0)		
 	
-	move	s1, a0
-	move	s2, a1
+	mv		s1, a0
+	mv		s2, a1
 	
 	jal	intToChar		#get the digits of the color code to print
-	move t2, a0
+	mv		t2, a0
 
-	move	a0, s1
-	move	a1, s2
+	mv		a0, s1
+	mv		a1, s2
 	
 	la	t0, setFGorBG
 	lb	t1, 0(t2)		#alter the string to print, max 3 digits ignore 1000's
@@ -503,7 +501,7 @@ setColor:
 	beq	a1, zero, sCsetBG	#set the code to print FG or BG
 		#setting FG
 		li	t1, 0x33
-		j	sCset
+		jal		x0, sCset
 	sCsetBG:
 		li	t1, 0x34
 	sCset:
@@ -568,7 +566,6 @@ startGLIR:
 	jal	setDisplaySize
 	jal	restoreSettings
 	jal	clearScreen
-	
 	jal	hideCursor
 	
 	#Stack Restore
@@ -687,10 +684,9 @@ setDisplaySize:
 	or	t0, t0, t1
 	bne	t0, zero, sDSend
 	
-					#else
-	
-	move	s1, a0
-	move	s2, a1
+	#else	
+	mv		s1, a0
+	mv		s2, a1
 	
 	la	t0, TERM_ROWS		#set the TERM globals
 	sw	a0, 0(t0)
@@ -711,7 +707,7 @@ setDisplaySize:
 	sb	t1, 4(t0)
 	
 	#cols
-	move	a0, s2
+	mv	a0, s2
 	jal	intToChar		#get the digits of the params to print
 	
 	la	t0, sDSstring
@@ -725,11 +721,10 @@ setDisplaySize:
 	sb	t1, 9(t0)
 	
 	li	a7, 4
-	move	a0, t0
+	mv	a0, t0
 	ecall
 	
-	sDSend:
-	
+	sDSend:	
 	#Stack Restore
 	lw	ra, -4(s0)
 	lw	s1, -8(s0)
@@ -764,12 +759,12 @@ colorDemo:
 	li	s2, 1
 	li	s3, 1
 	mLoop:		#while True
-		move	a0, s1
+		mv	a0, s1
 		li	a1, 1
 		jal	setColor
 		la	a0, char
-		move	a1, s3
-		move	a2, s2
+		mv	a1, s3
+		mv	a2, s2
 		jal	printString
 		addi	s2, s2, 1
 		li	t0, 7
@@ -817,13 +812,13 @@ printCircle:
 	sw	s7, -32(s0)
 	sw	s8, -36(s0)
 	
-	move	s1, a2	#row = radius
+	mv	s1, a2	#row = radius
 	li	s2, 0	#col = 0
 	li	s3, 0	#err = 0
 	la	s4, pCchar
-	move	s5, a0	#store the args
-	move	s6, a1
-	move	s7, a3
+	mv	s5, a0	#store the args
+	mv	s6, a1
+	mv	s7, a3
 	
 	pCloop:	#while (col <= row)
 	addi	t1, s2, -1
@@ -900,7 +895,7 @@ printCircle:
 			add	s3, s3, s2	#err += 2y+1
 			add	s3, s3, s2
 			addi	s3, s3, 1
-			j	pClcont
+			jal		x0, pClcont
 		pClmoveRow:			#else
 			addi	s1, s1, -1	#x -= 1
 			sub	t0, s2, s1	#err += 2(y-x) + 1
@@ -908,7 +903,7 @@ printCircle:
 			add	s3, s3, t0
 			addi	s3, s3, 1
 		pClcont:
-		j	pCloop
+		jal		x0, pCloop
 	pClend:
 
 	#Stack Restore
