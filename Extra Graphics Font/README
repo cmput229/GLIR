@@ -1,0 +1,28 @@
+Austin Crapo, July 2017
+-- It's entirely possible that by switching the font on the fly 
+(escape sequences possible?) you could create 'graphical fonts' that would
+have glyphs for tiles instead of letters and characters. It would have to be
+a bitmap font and also would be nice if it was pixel perfect square. The font
+in here is a freeware font that was presented for use in games (hence the 
+invaders glyphs). It's a proof of concept. Maybe I need to write a script to call
+all the font changing things and then change back afterward, but uncertain.
+I do know that bitmap fonts are disabled system wide by default and that requires
+sudo to overcome. But can be overcome without sudo on a per user basis ala:
+http://www.alanbriolat.co.uk/enable-bitmap-fonts-on-ubuntu-jaunty.html
+
+retrieved 2017-july-12
+"
+
+I like to use tiny bitmap fonts like MonteCarlo for programming, but by default Ubuntu has bitmap font support turned off. From (at least) Gutsy through to Intrepid, this method worked for enabling bitmap font support, but after installing the Jaunty beta I found this no longer works.
+
+Luckily, after a brief look in /etc/fonts, I found that font configuration now follows the nice pattern of a conf.avail directory containing all the available configuration parts, and conf.d containing symlinks to these parts. This makes enabling bitmap fonts even simpler now:
+
+# "Un-disable" bitmap fonts
+sudo rm /etc/fonts/conf.d/70-no-bitmaps.conf
+# Clear the font cache
+sudo fc-cache -f -v
+
+Now you should be able to drop bitmap (i.e. PCF) fonts into ~/.fonts as you would with TTF fonts and be able to use them with no extra hassle.
+
+Update: Andreas asked in the comments if there was a way to do this that doesn't require root access. In fact there is! If you copy /etc/fonts/conf.avail/70-force-bitmaps.conf to ~/.fonts.conf then it has the same effect. (If you already have a ~/.fonts.conf then you'll want to merge them together; copy everything inside <fontconfig>...</fontconfig> from 70-force-bitmaps.conf and put it just before </fontconfig> in ~/.fonts.conf.)
+"
