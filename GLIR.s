@@ -72,7 +72,7 @@ clearScreen:
 	la	a0, clearScreenCmd
 	ecall
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .data
 setCstring:
@@ -114,8 +114,8 @@ setCursor:
 	# left corner of the screen, but most terminals define (1,1) as top left
 	#ROW
 	addi	a0, s2, 1
-	la	t2, setCstring		# NOTE: improper register useage conventions
 	jal	intToChar
+	la	t2, setCstring
 	lb	t0, 0(a0)
 	sb	t0, 5(t2)
 	lb	t0, 1(a0)
@@ -127,8 +127,8 @@ setCursor:
 	
 	#COL
 	addi	a0, s3, 1
-	la	t2, setCstring
 	jal	intToChar
+	la	t2, setCstring
 	lb	t0, 0(a0)
 	sb	t0, 10(t2)
 	lb	t0, 1(a0)
@@ -151,7 +151,7 @@ setCursor:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .text
 printString:
@@ -217,7 +217,7 @@ printString:
 	
 	#print the char
 	li	a7, 4
-	move	a0, s1
+	mv		a0, s1
 	ecall
 	
 	pSend:
@@ -229,7 +229,7 @@ printString:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 batchPrint:
 	########################################################################
@@ -318,7 +318,7 @@ batchPrint:
 			li	t0, -1	
 			bne	s7, t0, bPscCreset	#if lastFG != -1 
 			bne	s8, t0, bPscCreset	#OR lastBG != -1
-			jal		x0, bPscCend
+			jal	zero, bPscCend
 			bPscCreset:
 				jal	restoreSettings
 				li	s7, -1
@@ -330,7 +330,7 @@ batchPrint:
 		beq	s4, t0, bPFGColor
 		li	t0, 4
 		beq	s4, t0, bPFGColor
-		jal		x0, bPFCend
+		jal		zero, bPFCend
 		bPFGColor:
 			lbu	t0, 5(s1)
 			beq	t0, s7, bPFCend	#if color != lastFG
@@ -345,7 +345,7 @@ batchPrint:
 		beq	s4, t0, bPBGColor
 		li	t0, 4
 		beq	s4, t0, bPBGColor
-		jal		x0, bPBCend
+		jal		zero, bPBCend
 		bPBGColor:
 			lbu	t0, 6(s1)
 			beq	t0, s8, bPBCend	#if color != lastBG
@@ -363,7 +363,7 @@ batchPrint:
 		
 		bPscont:
 		addi	s1, s1, 12
-		jal		x0, bPscan
+		jal		zero, bPscan
 
 	bPsend:	
 	#Stack Restore
@@ -379,7 +379,7 @@ batchPrint:
 	addi	sp, sp, 4
 	
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 	
 .data
 .align 2
@@ -449,7 +449,7 @@ intToChar:
 	lw			s0, 0(sp)
 	addi		sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 	
 .data
 .align 2
@@ -501,14 +501,14 @@ setColor:
 	beq	a1, zero, sCsetBG	#set the code to print FG or BG
 		#setting FG
 		li	t1, 0x33
-		jal		x0, sCset
+		jal		zero, sCset
 	sCsetBG:
 		li	t1, 0x34
 	sCset:
 		sb	t1, 2(t0)
 	
 	li	a7, 4
-	move	a0, t0
+	mv		a0, t0
 	ecall
 		
 	#Stack Restore
@@ -519,7 +519,7 @@ setColor:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .data
 .align 2
@@ -538,7 +538,7 @@ restoreSettings:
 	li	a7, 4
 	ecall
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .text
 startGLIR:
@@ -574,7 +574,7 @@ startGLIR:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 	
 
 .text
@@ -613,7 +613,7 @@ endGLIR:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 	
 .data
 .align 2
@@ -631,7 +631,7 @@ hideCursor:
 	li	a7, 4
 	ecall
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .data
 .align 2
@@ -649,7 +649,7 @@ showCursor:
 	li	a7, 4
 	ecall
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .data
 .align 2
@@ -733,11 +733,11 @@ setDisplaySize:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 
 .data
 cDchar:
-	.asciiz "█"
+	.asciz "█"
 .text
 colorDemo:
 	########################################################################
@@ -745,7 +745,7 @@ colorDemo:
 	# Requires that the terminal size be at least 30 rows and 6 cols big.
 	# Currently skips the first 15 colors because it's prettier :P
 	#
-	# RISC-V modification notes: this function is breaking calling conventions by not managing the stack 
+	# RISC-V conversion notes: This function is breaking calling conventions by not managing the stack. 
 	# cont.: I've avoided fixing this in case this was purposeful and have shifted the s0 registers up by 1 (breaking register usage conventions) in order to avoid this function overwriting the s0 
 	#
 	# Register Usage
@@ -777,14 +777,14 @@ colorDemo:
 		beq	s1, t0, mLend
 		j	mLoop
 	mLend:
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 	
 .data
 pClist:
 	.align 2
 	.space 100	#9*3*4 words, only prints 8 pixels at a time
 pCchar:
-	.asciiz " " #character to print with
+	.asciz " " #character to print with
 .text
 printCircle:
 	############################
@@ -895,7 +895,7 @@ printCircle:
 			add	s3, s3, s2	#err += 2y+1
 			add	s3, s3, s2
 			addi	s3, s3, 1
-			jal		x0, pClcont
+			jal	zero, pClcont
 		pClmoveRow:			#else
 			addi	s1, s1, -1	#x -= 1
 			sub	t0, s2, s1	#err += 2(y-x) + 1
@@ -903,7 +903,7 @@ printCircle:
 			add	s3, s3, t0
 			addi	s3, s3, 1
 		pClcont:
-		jal		x0, pCloop
+		jal		zero, pCloop
 	pClend:
 
 	#Stack Restore
@@ -920,7 +920,7 @@ printCircle:
 	lw	s0, 0(sp)
 	addi	sp, sp, 4
 	
-	jalr		x0, 0(ra)
+	jalr		zero, ra, 0
 ##############################################################################
 #					END OF GLIR
 ##############################################################################
