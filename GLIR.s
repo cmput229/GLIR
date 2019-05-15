@@ -737,7 +737,7 @@ setDisplaySize:
 
 .data
 cDchar:
-	.asciz "█"
+	.asciz "#"
 .text
 colorDemo:
 	########################################################################
@@ -745,14 +745,22 @@ colorDemo:
 	# Requires that the terminal size be at least 30 rows and 6 cols big.
 	# Currently skips the first 15 colors because it's prettier :P
 	#
-	# RISC-V conversion notes: This function is breaking calling conventions by not managing the stack. 
-	# cont.: I've avoided fixing this in case this was purposeful and have shifted the s0 registers up by 1 (breaking register usage conventions) in order to avoid this function overwriting the s0 
+	# RISC-V conversion notes: Had to temporarily replace the unicode full block char as used in MIPS version because RARS doesn't appear to support unicode chars or extended ascii chars
 	#
 	# Register Usage
 	# s1 = Holds the initial offset - we start at color 16 because the first 16 (0-15) don't align very well in this demo. Change it to 0 if you want to FULL color gamut
 	# s2 = Holds the current column being printed to.
 	# s3 = Holds the current row being printed to.
 	########################################################################
+	addi	sp, sp, -4		
+	sw	s0, 0(sp)		
+	add	s0, zero, sp		
+	addi	sp, sp, -16		
+	sw    ra, -4(s0)		
+	sw	s1, -8(s0)		
+	sw	s2, -12(s0)
+	sw	s3, -16(s0)
+	
 	jal	clearScreen
 	#print the color space, skip the first 15 because prettier
 	li	s1, 16	#start at 16 so that we dont get offset weirdly by the first 15 colors
@@ -762,7 +770,7 @@ colorDemo:
 		mv	a0, s1
 		li	a1, 1
 		jal	setColor
-		la	a0, char
+		la	a0, cDchar
 		mv	a1, s3
 		mv	a2, s2
 		jal	printString
@@ -777,6 +785,15 @@ colorDemo:
 		beq	s1, t0, mLend
 		j	mLoop
 	mLend:
+
+	lw	ra, -4(s0)
+	lw	s1, -8(s0)
+	lw	s2, -12(s0)
+	lw	s3, -16(s0)
+	addi	sp, sp, 16
+	lw	s0, 0(sp)
+	addi	sp, sp, 4
+
 	jalr		zero, ra, 0
 	
 .data
