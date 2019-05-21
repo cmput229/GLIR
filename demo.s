@@ -5,10 +5,11 @@
 # Date: May 2019
 #
 # A demo meant to show off GLIR's basic functions
+#
 # RISC-V conversion notes: The original MIPS program appears to leave a long vertical bar
-# cont.: in the print circles section of code. Without any videos or in-depth documentation
-# cont.: of intended functioning I have to assume this is intended and have avoided fixing
-# cont.: this for the purposes of this conversion.
+# in the print circles section of code. Without any videos or in-depth documentation
+# of intended functioning I have to assume this is intended and have avoided fixing
+# this for the purposes of this conversion.
 ######################
 .data
 char:
@@ -435,13 +436,13 @@ main:
 	
 sleep:
 	#############################################
-	# Waits the specified number of milliseconds by doing nothing
+	# Waits the specified number of milliseconds (roughly) by doing nothing
 	# a0 = the number of seconds to sleep
 	#############################################
 	wSoutLoop:
 	beq	a0, zero, wSoLend
 		addi	a0, a0, -1
-		li	t0, 185
+		li	t0, 740
 		wSloop:
 		beq	t0, zero, wSlend
 			nop
