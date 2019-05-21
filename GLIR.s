@@ -654,7 +654,7 @@ showCursor:
 .data
 .align 2
 sDSstring:
-	.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x74 0x00
+	.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
 setDisplaySize:
 	########################################################################
@@ -737,15 +737,14 @@ setDisplaySize:
 
 .data
 cDchar:
-	.asciz "#"
+    .byte 0xe2, 0x96, 0x88	#unicode full block char █; loaded as bytes for RARS
+    .byte 0
 .text
 colorDemo:
 	########################################################################
 	# Attempts to print the 16-256 color gamut of your terminal.
-	# Requires that the terminal size be at least 30 rows and 6 cols big.
+	# Requires that the terminal size be at least 41 rows and 6 cols big.
 	# Currently skips the first 15 colors because it's prettier :P
-	#
-	# RISC-V conversion notes: Had to temporarily replace the unicode full block char as used in MIPS version because RARS doesn't appear to support unicode chars or extended ascii chars
 	#
 	# Register Usage
 	# s1 = Holds the initial offset - we start at color 16 because the first 16 (0-15) don't align very well in this demo. Change it to 0 if you want to FULL color gamut
