@@ -37,6 +37,9 @@
 #
 # Does not support being run in a terminal tab; requires a separate window.
 #
+# GLIR was converted from the original GLIM which can be found here:
+# https://github.com/AustinGrey/GLIM
+#
 # Intended for use with RARS RISC-V simulator; relies on the syscalls and pseudo
 # instructions of RARS. 
 # https://github.com/TheThirdOne/rars
