@@ -281,72 +281,73 @@ batchPrint:
 		mv		s1, a0							# scanner = start of batch
 		# For item in list
 		bPscan:
-			# Extract row and col to vars
-			lhu		s2, 0(s1)					# row
-			lhu		s3, 2(s1)					# col
-			# If row is 0xFFFF: break
-			li		t0, 0xFFFF
-			beq		s2, t0, bPsend
-		
-			# Extract printing code
-			lbu		s4, 4(s1)					# Print code
-			# Skip if printing code is 0
-			beq		s4, zero, bPscont
-		
-			# Print to match printing code if needed
-			# If standard print, make sure to clear the current color settings
-			li		t0, 1						# If pcode != 1
-			bne		s4, t0, bPscCend
-		#bPsclearColor:
-			li		t0, -1	
-			bne		s7, t0, bPscCreset			# If lastFG != -1 
-			bne		s8, t0, bPscCreset			# OR lastBG != -1
-			j		bPscCend
-		bPscCreset:
-			jal		restoreSettings
-			li		s7, -1
-			li		s8, -1
+				# Extract row and col to vars
+				lhu		s2, 0(s1)				# row
+				lhu		s3, 2(s1)				# col
+				# If row is 0xFFFF: break
+				li		t0, 0xFFFF
+				beq		s2, t0, bPsend
+			
+				# Extract printing code
+				lbu		s4, 4(s1)				# Print code
+				# Skip if printing code is 0
+				beq		s4, zero, bPscont
+			
+				# Print to match printing code if needed
+				# If standard print, make sure to clear the current color 
+				# settings
+				li		t0, 1					# If pcode != 1
+				bne		s4, t0, bPscCend
+				# bPsclearColor:
+				li		t0, -1	
+				bne		s7, t0, bPscCreset		# If lastFG != -1 
+				bne		s8, t0, bPscCreset		# OR lastBG != -1
+				j		bPscCend
+				bPscCreset:
+				jal		restoreSettings
+				li		s7, -1
+				li		s8, -1
 
-		bPscCend:		
-			# Change foreground color if needed
-			li		t0, 2						# If pcode == 2 or pcode == 4
-			beq		s4, t0, bPFGColor
-			li		t0, 4
-			beq		s4, t0, bPFGColor
-			j		bPFCend
-		bPFGColor:
-			lbu		t0, 5(s1)
-			beq		t0, s7, bPFCend				# If color != lastFG
-			mv		s7, t0						# Store to lastFG
-			mv		a0, t0						# Set as FG color
-			li		a1, 1
-			jal		setColor
+				bPscCend:		
+				# Change foreground color if needed
+				li		t0, 2					# If pcode == 2 or pcode == 4
+				beq		s4, t0, bPFGColor
+				li		t0, 4
+				beq		s4, t0, bPFGColor
+				j		bPFCend
+				bPFGColor:
+				lbu		t0, 5(s1)
+				beq		t0, s7, bPFCend			# If color != lastFG
+				mv		s7, t0					# Store to lastFG
+				mv		a0, t0					# Set as FG color
+				li		a1, 1
+				jal		setColor
 
-		bPFCend:		
-			# Change background color if needed
-			li		t0, 3						# If pcode == 3 or pcode == 4
-			beq		s4, t0, bPBGColor
-			li		t0, 4
-			beq		s4, t0, bPBGColor
-			j		bPBCend
-		bPBGColor:
-			lbu		t0, 6(s1)
-			beq		t0, s8, bPBCend				# If color != lastBG
-			mv		s8, t0						# Store to lastBG
-			mv		a0, t0						# Set as BG color
-			li		a1, 0
-			jal		setColor
+				bPFCend:		
+				# Change background color if needed
+				li		t0, 3					# If pcode == 3 or pcode == 4
+				beq		s4, t0, bPBGColor
+				li		t0, 4
+				beq		s4, t0, bPBGColor
+				j		bPBCend
+				bPBGColor:
+				lbu		t0, 6(s1)
+				beq		t0, s8, bPBCend			# If color != lastBG
+				mv		s8, t0					# Store to lastBG
+				mv		a0, t0					# Set as BG color
+				li		a1, 0
+				jal		setColor
 
-		bPBCend:		
-			# Then print string to (row, col)
-			lw		a0, 8(s1)
-			mv		a1, s2
-			mv		a2, s3
-			jal	printString
+				bPBCend:		
+				# Then print string to (row, col)
+				lw		a0, 8(s1)
+				mv		a1, s2
+				mv		a2, s3
+				jal	printString
 		
-		bPscont:
-			addi	s1, s1, 12
-			j		bPscan
+				bPscont:
+				addi	s1, s1, 12
+				j		bPscan
 
 		bPsend:	
 		# Stack Restore
@@ -432,6 +433,7 @@ intToChar:
 
 		mv		a0, s0
 
+		# Stack Restore
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
@@ -439,7 +441,7 @@ intToChar:
 	
 .data
 .align 2
-setFGorBG:		.byte 0x1b, 0x5b, 0x34, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30, 
+setFGorBG:		.byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30, 
 				0x30, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
@@ -482,11 +484,11 @@ setColor:
 		sb		t1, 8(t0)
 	
 		beq		a1, zero, sCsetBG				# Set the code to print FG or BG
-			# Setting FG
-			li		t1, 0x33
-			j		sCset
+				# Setting FG
+				li		t1, 0x33
+				j		sCset
 		sCsetBG:
-			li		t1, 0x34
+				li		t1, 0x34
 
 		sCset:
 		sb		t1, 2(t0)
@@ -625,7 +627,6 @@ showCursor:
 sDSstring:		.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b, 
 				0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
-setDisplaySize:
 #-------------------------------------------------------------------------------
 # setDisplaySize
 # Args:		a0 = number of rows
@@ -635,6 +636,7 @@ setDisplaySize:
 # parameters passed. The number of rows and cols are ints x and y such that: 
 # 0 <= x,y <= 999
 #-------------------------------------------------------------------------------
+setDisplaySize:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -723,6 +725,7 @@ cDchar:			.asciz "█"
 # Currently skips the first 15 colors because it's prettier :P
 #-------------------------------------------------------------------------------
 colorDemo:
+		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
 		add		s0, zero, sp					# fp <= sp
@@ -739,25 +742,26 @@ colorDemo:
 		li		s2, 1							# col
 		li		s3, 1							# row
 		mLoop:		# While True
-			mv		a0, s1
-			li		a1, 1
-			jal		setColor
-			la		a0, cDchar
-			mv		a1, s3
-			mv		a2, s2
-			jal		printString
-			addi	s2, s2, 1
-			li		t0, 7
-			bne		s2, t0, mLcont
-			li		s2, 1
-			addi	s3, s3, 1
-		mLcont:
-			addi	s1, s1, 1
-			li		t0, 256
-			beq		s1, t0, mLend
-			j		mLoop
-		mLend:
+				mv		a0, s1
+				li		a1, 1
+				jal		setColor
+				la		a0, cDchar
+				mv		a1, s3
+				mv		a2, s2
+				jal		printString
+				addi	s2, s2, 1
+				li		t0, 7
+				bne		s2, t0, mLcont
+				li		s2, 1
+				addi	s3, s3, 1
+				mLcont:
+				addi	s1, s1, 1
+				li		t0, 256
+				beq		s1, t0, mLend
+				j		mLoop
 
+		mLend:
+		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
 		lw		s2, -12(s0)
@@ -811,86 +815,86 @@ printCircle:
 		mv		s7, a3
 		
 		pCloop:									# While (col <= row)
-			addi	t1, s2, -1
-			slt		t0, t1, s1
-			beq		t0, zero, pClend
-			# Draw a pixel to each octant of the screen
-			la		t0, pClist
-			add		t1, s5, s1
-			add		t2, s6, s2
-			sh		t1, 0(t0)					# Pixel location
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)					# Pixel printing code
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			add		t1, s5, s2
-			add		t2, s6, s1
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			sub		t1, s5, s2
-			add		t2, s6, s1
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			sub		t1, s5, s1
-			add		t2, s6, s2
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			sub		t1, s5, s1
-			sub		t2, s6, s2
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			sub		t1, s5, s2
-			sub		t2, s6, s1
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			add		t1, s5, s2
-			sub		t2, s6, s1
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			add		t1, s5, s1
-			sub		t2, s6, s2
-			sh		t1, 0(t0)
-			sh		t2, 2(t0)
-			sw		s7, 4(t0)
-			sw		s4, 8(t0)
-			addi	t0, t0, 12
-			li		t1, 0xFFFF
-			sh		t1, 0(t0)
-			la		a0, pClist
-			jal		batchPrint
-			
-			addi	s2, s2, 1					# y += 1
-			bgtz	s3, pClmoveRow				# If (err <= 0)
-			add		s3, s3, s2					# err += 2y+1
-			add		s3, s3, s2
-			addi	s3, s3, 1
-			j		pClcont
-		pClmoveRow:								# Else
-			addi	s1, s1, -1					# x -= 1
-			sub		t0, s2, s1					# err += 2(y-x) + 1
-			add		s3, s3, t0
-			add		s3, s3, t0
-			addi	s3, s3, 1
-		pClcont:
-			j		pCloop
+				addi	t1, s2, -1
+				slt		t0, t1, s1
+				beq		t0, zero, pClend
+				# Draw a pixel to each octant of the screen
+				la		t0, pClist
+				add		t1, s5, s1
+				add		t2, s6, s2
+				sh		t1, 0(t0)				# Pixel location
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)				# Pixel printing code
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				add		t1, s5, s2
+				add		t2, s6, s1
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				sub		t1, s5, s2
+				add		t2, s6, s1
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				sub		t1, s5, s1
+				add		t2, s6, s2
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				sub		t1, s5, s1
+				sub		t2, s6, s2
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				sub		t1, s5, s2
+				sub		t2, s6, s1
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				add		t1, s5, s2
+				sub		t2, s6, s1
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				add		t1, s5, s1
+				sub		t2, s6, s2
+				sh		t1, 0(t0)
+				sh		t2, 2(t0)
+				sw		s7, 4(t0)
+				sw		s4, 8(t0)
+				addi	t0, t0, 12
+				li		t1, 0xFFFF
+				sh		t1, 0(t0)
+				la		a0, pClist
+				jal		batchPrint
+				
+				addi	s2, s2, 1				# y += 1
+				bgtz	s3, pClmoveRow			# If (err <= 0)
+				add		s3, s3, s2				# err += 2y+1
+				add		s3, s3, s2
+				addi	s3, s3, 1
+				j		pClcont
+				pClmoveRow:						# Else
+				addi	s1, s1, -1				# x -= 1
+				sub		t0, s2, s1				# err += 2(y-x) + 1
+				add		s3, s3, t0
+				add		s3, s3, t0
+				addi	s3, s3, 1
+				pClcont:
+				j		pCloop
 		
 		pClend:
 		# Stack Restore
