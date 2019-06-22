@@ -93,8 +93,9 @@ main:
 				sh		t0, 12(a0)				# Terminate the job list
 				jal		batchPrint
 				
-				li		a0, 1					# Wait '1' seconds
-				jal		sleep
+				li		a0, 1					# Wait 0.001 seconds
+				li		a7, 32
+				ecall
 				
 				addi	s4, s4, 1				# Goto next bgcolor
 				li		t0, 255
@@ -123,7 +124,8 @@ main:
 		lend:		
 		# Wait
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		# Then carve out a message.
 		# This section shows off printString; just simply printing the string we
@@ -187,7 +189,8 @@ main:
 		jal		printString						# Done printing H
 		
 		li		a0, 500
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		la		a0, char
 		li		a1, 0
@@ -236,7 +239,8 @@ main:
 		jal		printString						# Done printing "I"
 		
 		li		a0, 500
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		la		a0, char
 		li		a1, 0
@@ -253,7 +257,8 @@ main:
 		jal		printString						# Done printing "!"
 		
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		
 		
@@ -271,7 +276,8 @@ main:
 		jal		printCircle
 		
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		li		a0, 15
 		li		a1, 30
@@ -295,7 +301,8 @@ main:
 		jal		printCircle
 		
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		li		a0, 15
 		li		a1, 30
@@ -329,7 +336,8 @@ main:
 		jal		printCircle
 		
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		li		a0, 15
 		li		a1, 30
@@ -373,7 +381,8 @@ main:
 		jal		printCircle
 		
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 		
 		li		s1, 2							# radius = 2 (0 and 1 already
 												# covered)
@@ -432,7 +441,8 @@ main:
 				jal		printCircle
 				
 				li		a0, 1000
-				jal		sleep
+				li		a7, 32
+				ecall
 				
 				addi	s1, s1, 1
 				addi	s2, s2, 1
@@ -442,7 +452,8 @@ main:
 		jal		restoreSettings
 		jal		clearScreen
 		li		a0, 1000
-		jal		sleep
+		li		a7, 32
+		ecall
 
 		# MUST BE CALLED BEFORE ENDING PROGRAM
 		jal		endGLIR
@@ -461,25 +472,3 @@ main:
 		# Exit program
 		li 		a7, 10
 		ecall	
-	
-#-------------------------------------------------------------------------------
-# sleep
-# Args:		a0 = the number of milliseconds to sleep
-# 
-# Waits the specified number of milliseconds (roughly) by doing nothing
-#-------------------------------------------------------------------------------
-sleep:
-		wSoutLoop:
-				beq		a0, zero, wSoLend
-				addi	a0, a0, -1
-				li		t0, 740
-				wSloop:
-				beq		t0, zero, wSlend
-				nop
-				addi	t0, t0, -1
-				j		wSloop
-				wSlend:
-				j		wSoutLoop
-
-		wSoLend:
-		ret

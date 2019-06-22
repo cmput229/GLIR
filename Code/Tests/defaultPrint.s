@@ -125,7 +125,8 @@ main:
 
 		# Wait 2.5 seconds
 		li      a0, 2500
-		jal     sleep
+		li		a7, 32
+		ecall
 
 		jal     endGLIR
 
@@ -138,25 +139,3 @@ main:
 		# Exit program
 		li 		a7, 10
 		ecall
-
-#-------------------------------------------------------------------------------
-# sleep
-# Args:		a0 = the number of milliseconds to sleep
-# 
-# Waits the specified number of milliseconds (roughly) by doing nothing
-#-------------------------------------------------------------------------------
-sleep:
-		wSoutLoop:
-				beq		a0, zero, wSoLend
-				addi	a0, a0, -1
-				li		t0, 740
-				wSloop:
-				beq		t0, zero, wSlend
-				nop
-				addi	t0, t0, -1
-				j		wSloop
-				wSlend:
-				j		wSoutLoop
-
-		wSoLend:
-		ret
