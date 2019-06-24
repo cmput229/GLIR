@@ -274,8 +274,8 @@ batchPrint:
 		sw		s8, -28(s0)
 	
 	# Store the last known colors, to avoid un-needed printing
-		li		s7, -1							#	lastFG = -1
-		li		s8, -1							#	lastBG = -1
+		li		s7, -1							# lastFG = -1
+		li		s8, -1							# lastBG = -1
 	
 	
 		mv		s1, a0							# scanner = start of batch
