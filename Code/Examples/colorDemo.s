@@ -21,10 +21,15 @@
 # Author: Taylor Zowtuk
 # Date: June 2019
 #-------------------------------------------------------------------------------
-# A demo meant to show off GLIR's colorDemo subroutine.
+# A demo meant to show off GLIR's GLIR_ColorDemo subroutine.
 # Use the runColorDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
-
+.data
+# Here we store the RARS syscall service numbers which are needed.
+# Before a syscall we load from the label.
+# They are saved and loaded in this way to promote code portability.
+_EXIT:			.word 10
+_SLEEP:			.word 32
 .text
 main:
 		# Stack Adjustments
@@ -37,18 +42,17 @@ main:
 		# Pass the size of terminal
 		li      a0, 42							# Number of rows
 		li      a1, 6							# Number of cols
-		jal     startGLIR
+		jal     ra, GLIR_Start
 
-		jal 	clearScreen
-
-		jal     colorDemo
+		jal     ra, GLIR_ColorDemo
 
 		# Wait 5 seconds to admire
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li      a0, 5000
-		li		a7, 32
 		ecall
 
-		jal     endGLIR
+		jal     ra, GLIR_End
 
 		# Stack Restore
 		lw		ra, -4(s0)
@@ -57,5 +61,6 @@ main:
 		addi	sp, sp, 4
 
 		# Exit program
-		li 		a7, 10
+		la		a7, _EXIT
+		lw		a7, 0(a7)
 		ecall

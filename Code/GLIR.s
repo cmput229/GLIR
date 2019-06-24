@@ -40,51 +40,59 @@
 # GLIR was converted from the original GLIM which can be found here:
 # https://github.com/AustinGrey/GLIM
 #
-# Intended for use with RARS RISC-V simulator; relies on the syscalls and pseudo
-# instructions of RARS. 
+# Intended for use with RARS RISC-V simulator; though I have limited use of 
+# pseudo instructions and made use of loading syscall service numbers from
+# labels for ease of protability. 
 # https://github.com/TheThirdOne/rars
 #-------------------------------------------------------------------------------
 
 .data
 .align 2
 # GLOBALS
+
+# Here we store the RARS syscall service numbers which are needed.
+# Before a syscall we load from the label.
+# They are saved and loaded in this way to promote code portability.
+_PRINT_STRING:	.word 4
+
 # These tell GLIR how big the terminal is currently.
-# The setter for these values is setDisplaySize.
+# The setter for these values is _GLIR_SetDisplaySize.
 # They are used to prevent off screen printing in the positive direction; the
 # negative direction does not require this check as far as I know.
 # Any negative value indicates that these variables have not been set.
-TERM_ROWS:		.word -1
-TERM_COLS:		.word -1
+_TERM_ROWS:		.word -1
+_TERM_COLS:		.word -1
 
 .align 2
-clearScreenCmd:	.byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
+ClearScreen_String:.byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
 .text
 #-------------------------------------------------------------------------------
-# clearScreen
+# ClearScreen
 #
 # Uses xfce4-terminal escape sequence to clear the screen.
 #-------------------------------------------------------------------------------
-clearScreen:
-		li		a7, 4
-		la		a0, clearScreenCmd
+GLIR_ClearScreen:
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		la		a0, ClearScreen_String
 		ecall
 	
-		ret
+		jalr	zero, ra, 0
 
 .data
 .align 2
-setCstring:		.byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30, 
-				0x30, 0x30, 0x48, 0x00
+SetCursor_String:	.byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30, 
+					0x30, 0x30, 0x48, 0x00
 .text
 #-------------------------------------------------------------------------------
-# setCursor
+# SetCursor
 # Args: 	a0 = row number to move to
 #			a1 = col number to move to
 #
 # Moves the cursor to the specified location on the screen. Max location is 3 
-# digits for row number, and 3 digits for column number. (row, col).
+# digits for row number, and 3 digits for column number. (Row, Col).
 #-------------------------------------------------------------------------------
-setCursor:
+_GLIR_SetCursor:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -102,16 +110,16 @@ setCursor:
 	# for the char coords. We translate the args to decimal chars and edit
 	# the command string, then print.
 	
-		mv		s1, a0							# s1 <- row
-		mv		s2, a1							# s2 <- col
+		addi	s1, a0, 0						# s1 <- Row
+		addi	s2, a1, 0						# s2 <- Col
 	
 	# NOTE: we add 1 to each coordinate because we want (0,0) to be the top
 	# left corner of the screen, but most terminals define (1,1) as top left.
 
 		# ROW
 		addi	a0, s1, 1
-		jal		intToChar
-		la		t2, setCstring
+		jal		ra, _GLIR_IntToChar
+		la		t2, SetCursor_String
 		lb		t0, 0(a0)
 		sb		t0, 5(t2)
 		lb		t0, 1(a0)
@@ -123,8 +131,8 @@ setCursor:
 	
 		# COL
 		addi	a0, s2, 1
-		jal		intToChar
-		la		t2, setCstring
+		jal		ra, _GLIR_IntToChar
+		la		t2, SetCursor_String
 		lb		t0, 0(a0)
 		sb		t0, 10(t2)
 		lb		t0, 1(a0)
@@ -135,8 +143,9 @@ setCursor:
 		sb		t0, 7(t2)
 
 		# Move the cursor
-		li		a7, 4
-		la		a0, setCstring
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		la		a0, SetCursor_String
 		ecall
 	
 		# Stack Restore
@@ -147,10 +156,10 @@ setCursor:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
-		ret
+		jalr	zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# printString
+# PrintString
 # Args:		a0 = address of string to print
 # 			a1 = integer value 0-999, row to print to (y position)
 # 			a2 = integer value 0-999, col to print to (x position)
@@ -175,7 +184,7 @@ setCursor:
 # Uses TERM_ROW and TERM_COL to determine if the target tile is outside of the
 # boundary of the terminal screen, in which case it does nothing.
 #-------------------------------------------------------------------------------
-printString:
+GLIR_PrintString:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -187,29 +196,30 @@ printString:
 	
 	# Terminal automatically rejects negative values, not certain why, but not 
 	# checking for it either
-		la		t0, TERM_ROWS					# Check if past boundary
+		la		t0, _TERM_ROWS					# Check if past boundary
 		lw		t0, 0(t0)
 		slt		t0, t0, a1						# If TERM_ROWS < print row
 	
-		la		t1, TERM_COLS
+		la		t1, _TERM_COLS
 		lw		t1, 0(t1)
 		slt		t1, t1, a2						# or if TERM_COLS < print col
 	
 		or		t0, t0, t1
-		bne		t0, zero, pSend					# then do nothing
+		bne		t0, zero, PrintString_End		# then do nothing
 	
 		# Else
-		mv		s1, a0
-		mv		a0, a1
-		mv		a1, a2
-		jal	setCursor
+		addi	s1, a0, 0
+		addi	a0, a1, 0
+		addi	a1, a2, 0
+		jal		ra, _GLIR_SetCursor
 	
 		# Print the char
-		li		a7, 4
-		mv		a0, s1
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		addi	a0, s1, 0
 		ecall
 	
-		pSend:	
+		PrintString_End:	
 		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
@@ -217,10 +227,10 @@ printString:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
-		ret
+		jalr	zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# batchPrint
+# BatchPrint
 # Args: 	a0 = address of batch list to print
 # Reg. Use:	s1 = scanner for the list
 # 			s2 = store row info
@@ -259,7 +269,7 @@ printString:
 # can be included in the strings. However, including such escape sequences can 
 # effect not just this print, but also future prints for other GLIR methods.
 #-------------------------------------------------------------------------------
-batchPrint:
+GLIR_BatchPrint:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -274,82 +284,83 @@ batchPrint:
 		sw		s8, -28(s0)
 	
 	# Store the last known colors, to avoid un-needed printing
-		li		s7, -1							# lastFG = -1
-		li		s8, -1							# lastBG = -1
+		li		s7, -1							# LastFg = -1
+		li		s8, -1							# LastBg = -1
 	
 	
-		mv		s1, a0							# scanner = start of batch
+		addi	s1, a0, 0						# Scanner = start of batch
 		# For item in list
-		bPscan:
+		BatchPrint_Scan:
 				# Extract row and col to vars
-				lhu		s2, 0(s1)				# row
-				lhu		s3, 2(s1)				# col
-				# If row is 0xFFFF: break
+				lhu		s2, 0(s1)				# Row
+				lhu		s3, 2(s1)				# Col
+				# If Row is 0xFFFF: break
 				li		t0, 0xFFFF
-				beq		s2, t0, bPsend
+				beq		s2, t0, BatchPrint_ScanEnd
 			
 				# Extract printing code
-				lbu		s4, 4(s1)				# Print code
+				lbu		s4, 4(s1)				# Print code (PCode)
 				# Skip if printing code is 0
-				beq		s4, zero, bPscont
+				beq		s4, zero, BatchPrint_ScanCont
 			
 				# Print to match printing code if needed
 				# If standard print, make sure to clear the current color 
 				# settings
-				li		t0, 1					# If pcode != 1
-				bne		s4, t0, bPscCend
-				# bPsclearColor:
+				li		t0, 1					# If PCode != 1
+				bne		s4, t0, BatchPrint_ScanClearEnd
+				# Check if we need to reset the color
+				# If Fg and Bg are -1 then current settings are terminal default
 				li		t0, -1	
-				bne		s7, t0, bPscCreset		# If lastFG != -1 
-				bne		s8, t0, bPscCreset		# OR lastBG != -1
-				j		bPscCend
-				bPscCreset:
-				jal		restoreSettings
+				bne		s7, t0, BatchPrint_ScanClearColor	# If LastFg != -1
+				bne		s8, t0, BatchPrint_ScanClearColor	# OR LastBg != -1
+				jal		zero, BatchPrint_ScanClearEnd
+				BatchPrint_ScanClearColor:
+				jal		ra, GLIR_RestoreSettings
 				li		s7, -1
 				li		s8, -1
 
-				bPscCend:		
+				BatchPrint_ScanClearEnd:		
 				# Change foreground color if needed
-				li		t0, 2					# If pcode == 2 or pcode == 4
-				beq		s4, t0, bPFGColor
+				li		t0, 2					# If PCode == 2 or PCode == 4
+				beq		s4, t0, BatchPrint_FgColor
 				li		t0, 4
-				beq		s4, t0, bPFGColor
-				j		bPFCend
-				bPFGColor:
+				beq		s4, t0, BatchPrint_FgColor
+				jal		zero, BatchPrint_FgColorEnd
+				BatchPrint_FgColor:
 				lbu		t0, 5(s1)
-				beq		t0, s7, bPFCend			# If color != lastFG
-				mv		s7, t0					# Store to lastFG
-				mv		a0, t0					# Set as FG color
+				beq		t0, s7, BatchPrint_FgColorEnd	# If Color != LastFg
+				addi	s7, t0, 0				# Store to LastFg
+				addi	a0, t0, 0				# Set as foreground color
 				li		a1, 1
-				jal		setColor
+				jal		ra, GLIR_SetColor
 
-				bPFCend:		
+				BatchPrint_FgColorEnd:		
 				# Change background color if needed
-				li		t0, 3					# If pcode == 3 or pcode == 4
-				beq		s4, t0, bPBGColor
+				li		t0, 3					# If PCode == 3 or PCode == 4
+				beq		s4, t0, BatchPrint_BgColor
 				li		t0, 4
-				beq		s4, t0, bPBGColor
-				j		bPBCend
-				bPBGColor:
+				beq		s4, t0, BatchPrint_BgColor
+				jal		zero, BatchPrint_BgColorEnd
+				BatchPrint_BgColor:
 				lbu		t0, 6(s1)
-				beq		t0, s8, bPBCend			# If color != lastBG
-				mv		s8, t0					# Store to lastBG
-				mv		a0, t0					# Set as BG color
+				beq		t0, s8, BatchPrint_BgColorEnd	# If Color != LastBg
+				addi	s8, t0, 0				# Store to LastBg
+				addi	a0, t0, 0				# Set as background color
 				li		a1, 0
-				jal		setColor
+				jal		ra, GLIR_SetColor
 
-				bPBCend:		
-				# Then print string to (row, col)
+				BatchPrint_BgColorEnd:		
+				# Then print string to (Row, Col)
 				lw		a0, 8(s1)
-				mv		a1, s2
-				mv		a2, s3
-				jal	printString
+				addi	a1, s2, 0
+				addi	a2, s3, 0
+				jal		ra, GLIR_PrintString
 		
-				bPscont:
+				BatchPrint_ScanCont:
 				addi	s1, s1, 12
-				j		bPscan
+				jal		zero, BatchPrint_Scan
 
-		bPsend:	
+		BatchPrint_ScanEnd:	
 		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
@@ -363,15 +374,15 @@ batchPrint:
 		addi	sp, sp, 4
 	
 	
-		ret
+		jalr	zero, ra, 0
 	
 .data
 .align 2
 # Storing 4 bytes, potentially up to 9999
-intToCharSpace:	.space	4
+IntToChar_Space:	.space	4
 .text
 #-------------------------------------------------------------------------------
-# intToChar
+# IntToChar
 # Args:		a0 = integer to convert
 # Returns:	a0 = address of the bytes, in the following order, 1's, 10's, 100's,
 #				 1000's
@@ -381,7 +392,7 @@ intToCharSpace:	.space	4
 # than 4 chars to represent, only the 4 least significant digits will be 
 # converted.
 #-------------------------------------------------------------------------------
-intToChar:
+_GLIR_IntToChar:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust stack to save variables
 		sw		s0, 0(sp)
@@ -392,19 +403,19 @@ intToChar:
 		# 1's = x%10
 		# 10's = x%100 - x%10
 		# 100's = x - x%100
-		la		s0, intToCharSpace
+		la		s0, IntToChar_Space
 	
 		# Ones
 		li		t1, 10
 		rem		t4, a0, t1						# x%10
-		# byte = 0x30 + x%10	
+		# Byte = 0x30 + x%10	
 		add		t1, t0, t4
 		sb		t1, 0(s0)
 	
 		# Tens
 		li		t1, 100	
 		rem 	t5, a0, t1						# x%100
-		# byte = 0x30 + (x%100 - x%10)/10
+		# Byte = 0x30 + (x%100 - x%10)/10
 		sub		t1, t5, t4
 		li		t3, 10
 		div 	t1, t1, t3
@@ -414,7 +425,7 @@ intToChar:
 		# Hundreds
 		li		t1, 1000
 		rem		t2, a0, t1						# x%1000
-		# byte = 0x30 + (x%1000 - x%100)/100			
+		# Byte = 0x30 + (x%1000 - x%100)/100			
 		sub		t1, t2, t5
 		li		t3, 100
 		div		t1, t1, t3
@@ -424,28 +435,28 @@ intToChar:
 		# Thousands
 		li		t1, 10000
 		rem		t6, a0, t1						# x%10000
-		# byte = 0x30 + (x%10000 - x%1000)/1000	
+		# Byte = 0x30 + (x%10000 - x%1000)/1000	
 		sub		t1, t6, t2
 		li		t3, 1000
 		div		t1, t1, t3
 		add		t1, t0, t1	
 		sb		t1, 3(s0)
 
-		mv		a0, s0
+		addi	a0, s0, 0
 
 		# Stack Restore
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
-		ret
+		jalr	zero, ra, 0
 	
 .data
 .align 2
-setFGorBG:		.byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30, 
-				0x30, 0x30, 0x6d, 0x00
+SetColor_String:	.byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30, 
+					0x30, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
-# setColor
+# SetColor
 # Args:		a0 = color code (see index)
 # 			a1 = 0 if setting background, 1 if setting foreground
 #
@@ -455,7 +466,7 @@ setFGorBG:		.byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30,
 # xfce4-terminal supports 256 color lookup table assignment; see the index for a
 # list of color codes.
 #-------------------------------------------------------------------------------
-setColor:
+GLIR_SetColor:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -465,16 +476,16 @@ setColor:
 		sw		s1, -8(s0)		
 		sw		s2, -12(s0)		
 	
-		mv		s1, a0
-		mv		s2, a1
+		addi	s1, a0, 0
+		addi	s2, a1, 0
 		# Get the digits of the color code to print
-		jal		intToChar
+		jal		ra, _GLIR_IntToChar
 
-		mv		t2, a0
-		mv		a0, s1
-		mv		a1, s2
+		addi	t2, a0, 0
+		addi	a0, s1, 0
+		addi	a1, s2, 0
 	
-		la		t0, setFGorBG
+		la		t0, SetColor_String
 		# Alter the string to print; max 3 digits; ignore 1000's
 		lb		t1, 0(t2)
 		sb		t1, 10(t0)
@@ -483,18 +494,21 @@ setColor:
 		lb		t1, 2(t2)
 		sb		t1, 8(t0)
 	
-		beq		a1, zero, sCsetBG				# Set the code to print FG or BG
-				# Setting FG
+		# Set the code to print foreground or background
+		beq		a1, zero, SetColor_SetBg
+				# Setting foreground
 				li		t1, 0x33
-				j		sCset
-		sCsetBG:
+				jal		zero, SetColor_Set
+		SetColor_SetBg:
+				# Setting background
 				li		t1, 0x34
 
-		sCset:
+		SetColor_Set:
 		sb		t1, 2(t0)
 	
-		li		a7, 4
-		mv		a0, t0
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		addi	a0, t0, 0
 		ecall
 		
 		# Stack Restore
@@ -505,36 +519,37 @@ setColor:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
-		ret
+		jalr	zero, ra, 0
 
 .data
 .align 2
-rSstring:		.byte 0x1b, 0x5b, 0x30, 0x6d, 0x00
+RestoreSettings_String:	.byte 0x1b, 0x5b, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
-# restoreSettings
+# RestoreSettings
 #
 # Prints the escape sequence that restores all default color settings to the 
-# terminal
+# terminal.
 #-------------------------------------------------------------------------------
-restoreSettings:
-		la		a0, rSstring
-		li		a7, 4
+GLIR_RestoreSettings:
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		la		a0, RestoreSettings_String
 		ecall
 	
-		ret
+		jalr	zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# startGLIR
+# Start
 # Args:		a0 = number of rows to set the screen to
 # 			a1 = number of cols to set the screen to
 #
-# Sets up the display in order to provide a stable environment. Call endGLIR 
+# Sets up the display in order to provide a stable environment. Call GLIR_End 
 # when program is finished to return to as many defaults and stable settings as
 # possible. Unfortunately screen size changes are not code-reversible, so 
-# endGLIR will only return the screen to the hardcoded value of 24x80.
+# GLIR_End will only return the screen to the hardcoded value of 24x80.
 #-------------------------------------------------------------------------------
-startGLIR:
+GLIR_Start:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp	
 		sw		s0, 0(sp)						# Save fp
@@ -542,10 +557,10 @@ startGLIR:
 		addi	sp, sp, -4						# Adjust stack to save ra
 		sw		ra, -4(s0)
 	
-		jal		setDisplaySize
-		jal		restoreSettings
-		jal		clearScreen
-		jal		hideCursor
+		jal		ra, _GLIR_SetDisplaySize
+		jal		ra, GLIR_RestoreSettings
+		jal		ra, GLIR_ClearScreen
+		jal		ra, _GLIR_HideCursor
 	
 		# Stack Restore
 		lw		ra, -4(s0)
@@ -553,16 +568,16 @@ startGLIR:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 	
-		ret
+		jalr	zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# endGLIR
+# End
 #
 # Reverts to default as many settings as it can, meant to end a program that was
-# started with startGLIR. The default terminal window in xfce4-terminal is 
+# started with Start. The default terminal window in xfce4-terminal is 
 # 24x80, so this is the assumed default we want to return to.
 #-------------------------------------------------------------------------------
-endGLIR:
+GLIR_End:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -572,15 +587,15 @@ endGLIR:
 	
 		li		a0, 24
 		li		a1, 80
-		jal		setDisplaySize
-		jal		restoreSettings
+		jal		ra, _GLIR_SetDisplaySize
+		jal		ra, GLIR_RestoreSettings
 	
-		jal		clearScreen
+		jal		ra, GLIR_ClearScreen
 	
-		jal		showCursor
+		jal		ra, _GLIR_ShowCursor
 		li		a0, 0
 		li		a1, 0
-		jal		setCursor
+		jal		ra, _GLIR_SetCursor
 		
 		# Stack Restore
 		lw		ra, -4(s0)
@@ -592,43 +607,45 @@ endGLIR:
 	
 .data
 .align 2
-hCstring:		.byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x6c, 0x00
+HideCursor_String:	.byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x6c, 0x00
 .text
 #-------------------------------------------------------------------------------
-# hideCursor
+# HideCursor
 #
 # Prints the escape sequence that hides the cursor.
 #-------------------------------------------------------------------------------
-hideCursor:
-		la		a0, hCstring
-		li		a7, 4
+_GLIR_HideCursor:
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		la		a0, HideCursor_String
 		ecall
 		
-		ret
+		jalr	zero, ra, 0
 
 .data
 .align 2
-sCstring:		.byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x68, 0x00
+ShowCursor_String:	.byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x68, 0x00
 .text
 #-------------------------------------------------------------------------------
-# showCursor
+# ShowCursor
 #
 # Prints the escape sequence that restores the cursor visibility.
 #-------------------------------------------------------------------------------
-showCursor:
-		la		a0, sCstring
-		li		a7, 4
+_GLIR_ShowCursor:
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		la		a0, ShowCursor_String
 		ecall
 		
-		ret
+		jalr	zero, ra, 0
 
 .data
 .align 2
-sDSstring:		.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b, 
-				0x30, 0x30, 0x30, 0x30, 0x74, 0x00
+SetDisplaySize_String:	.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b, 
+						0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
 #-------------------------------------------------------------------------------
-# setDisplaySize
+# SetDisplaySize
 # Args:		a0 = number of rows
 # 			a1 = number of columns
 #
@@ -636,7 +653,7 @@ sDSstring:		.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b,
 # parameters passed. The number of rows and cols are ints x and y such that: 
 # 0 <= x,y <= 999
 #-------------------------------------------------------------------------------
-setDisplaySize:
+_GLIR_SetDisplaySize:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -650,24 +667,24 @@ setDisplaySize:
 		slt		t0, a0, zero
 		slt		t1, a1, zero
 		or		t0, t0, t1
-		bne		t0, zero, sDSend
+		bne		t0, zero, SetDisplaySize_End
 		
 		# Else	
-		mv		s1, a0
-		mv		s2, a1
+		addi	s1, a0, 0
+		addi	s2, a1, 0
 		
 		# Set the TERM globals
-		la		t0, TERM_ROWS
+		la		t0, _TERM_ROWS
 		sw		a0, 0(t0)
-		la		t0, TERM_COLS
+		la		t0, _TERM_COLS
 		sw		a1, 0(t0)
 		
 		# Rows
 		# Get the digits of the params to print
-		jal		intToChar
+		jal		ra, _GLIR_IntToChar
 		
 		# Alter the string to print
-		la		t0, sDSstring
+		la		t0, SetDisplaySize_String
 		lb		t1, 0(a0)
 		sb		t1, 7(t0)
 		lb		t1, 1(a0)
@@ -678,12 +695,12 @@ setDisplaySize:
 		sb		t1, 4(t0)
 		
 		# Cols
-		mv		a0, s2
+		addi	a0, s2, 0
 		# Get the digits of the params to print
-		jal		intToChar		
+		jal		ra, _GLIR_IntToChar	
 		
 		# Alter the string to print
-		la		t0, sDSstring
+		la		t0, SetDisplaySize_String
 		lb		t1, 0(a0)		
 		sb		t1, 12(t0)
 		lb		t1, 1(a0)
@@ -693,11 +710,12 @@ setDisplaySize:
 		lb		t1, 3(a0)
 		sb		t1, 9(t0)
 		
-		li		a7, 4
-		mv		a0, t0
+		la		a7, _PRINT_STRING
+		lw		a7, 0(a7)
+		addi	a0, t0, 0
 		ecall
 		
-		sDSend:	
+		SetDisplaySize_End:	
 		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
@@ -706,14 +724,14 @@ setDisplaySize:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 		
-		ret
+		jalr	zero, ra, 0
 
 .data
 .align 2
-cDchar:			.asciz "█"
+ColorDemo_Char:	.asciz "█"
 .text
 #-------------------------------------------------------------------------------
-# colorDemo
+# ColorDemo
 # Reg. Use:	s1 = Holds the initial offset - we start at color 16 because the 
 #			first 16 (0-15) don't align very well in this demo. Change it to 0
 #			(and adjust minimum terminal size) if you want the FULL color gamut.
@@ -724,7 +742,7 @@ cDchar:			.asciz "█"
 # Requires that the terminal size be at least 41 rows and 6 cols big.
 # Currently skips the first 15 colors because it's prettier :P
 #-------------------------------------------------------------------------------
-colorDemo:
+GLIR_ColorDemo:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -735,32 +753,32 @@ colorDemo:
 		sw		s2, -12(s0)
 		sw		s3, -16(s0)
 
-		jal		clearScreen
+		jal		ra, GLIR_ClearScreen
 		# Print the colored boxes, skip the first 15 because its prettier
 		# Start at color 16 so that we dont get offset weirdly by the first 15 colors
-		li		s1, 16							# color
-		li		s2, 1							# col
-		li		s3, 1							# row
-		mLoop:		# While True
-				mv		a0, s1
+		li		s1, 16							# Color
+		li		s2, 1							# Col
+		li		s3, 1							# Row
+		ColorDemo_Loop:							# While True
+				addi	a0, s1, 0
 				li		a1, 1
-				jal		setColor
-				la		a0, cDchar
-				mv		a1, s3
-				mv		a2, s2
-				jal		printString
+				jal		ra, GLIR_SetColor
+				la		a0, ColorDemo_Char
+				addi	a1, s3, 0
+				addi	a2, s2, 0
+				jal		ra, GLIR_PrintString
 				addi	s2, s2, 1
 				li		t0, 7
-				bne		s2, t0, mLcont
+				bne		s2, t0, ColorDemo_LoopCont
 				li		s2, 1
 				addi	s3, s3, 1
-				mLcont:
+				ColorDemo_LoopCont:
 				addi	s1, s1, 1
 				li		t0, 256
-				beq		s1, t0, mLend
-				j		mLoop
+				beq		s1, t0, ColorDemo_LoopEnd
+				jal		zero, ColorDemo_Loop
 
-		mLend:
+		ColorDemo_LoopEnd:
 		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
@@ -770,16 +788,16 @@ colorDemo:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 
-		ret
+		jalr	zero, ra, 0
 	
 .data
 .align 2
-pClist:			.space 100						# 9*3*4 words, only prints 8 
+PrintCircle_List:	.space 100					# 9*3*4 words, only prints 8 
 												# pixels at a time
-pCchar:			.asciz " " 						# Character to print with
+PrintCircle_Char:	.asciz " " 					# Character to print with
 .text
 #-------------------------------------------------------------------------------
-# printCircle
+# PrintCircle
 # Args:		a0 = row to print at 
 # 			a1 = col to print at
 # 			a2 = radius of the circle to print
@@ -788,9 +806,9 @@ pCchar:			.asciz " " 						# Character to print with
 #			printList
 #
 # Prints a circle onto the screen using the midpoint circle algorithm and the 
-# character pCchar.
+# character PrintCircle_Char.
 #-------------------------------------------------------------------------------
-printCircle:
+GLIR_PrintCircle:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
@@ -806,20 +824,20 @@ printCircle:
 		sw		s7, -32(s0)
 		sw		s8, -36(s0)
 	
-		mv		s1, a2							# row = radius
-		li		s2, 0							# col = 0
-		li		s3, 0							# err = 0
-		la		s4, pCchar
-		mv		s5, a0							# Store the args
-		mv		s6, a1
-		mv		s7, a3
+		addi	s1, a2, 0						# Row = Radius
+		li		s2, 0							# Col = 0
+		li		s3, 0							# Err = 0
+		la		s4, PrintCircle_Char
+		addi	s5, a0, 0						# Store the args
+		addi	s6, a1, 0
+		addi	s7, a3, 0
 		
-		pCloop:									# While (col <= row)
+		PrintCircle_Loop:						# While (Col <= Row)
 				addi	t1, s2, -1
 				slt		t0, t1, s1
-				beq		t0, zero, pClend
+				beq		t0, zero, PrintCircle_LoopEnd
 				# Draw a pixel to each octant of the screen
-				la		t0, pClist
+				la		t0, PrintCircle_List
 				add		t1, s5, s1
 				add		t2, s6, s2
 				sh		t1, 0(t0)				# Pixel location
@@ -878,25 +896,25 @@ printCircle:
 				addi	t0, t0, 12
 				li		t1, 0xFFFF
 				sh		t1, 0(t0)
-				la		a0, pClist
-				jal		batchPrint
+				la		a0, PrintCircle_List
+				jal		ra, GLIR_BatchPrint
 				
-				addi	s2, s2, 1				# y += 1
-				bgtz	s3, pClmoveRow			# If (err <= 0)
-				add		s3, s3, s2				# err += 2y+1
+				addi	s2, s2, 1				# Y += 1
+				blt		zero, s3, PrintCircle_MoveRow	# If (Err <= 0)
+				add		s3, s3, s2				# Err += 2Y+1
 				add		s3, s3, s2
 				addi	s3, s3, 1
-				j		pClcont
-				pClmoveRow:						# Else
-				addi	s1, s1, -1				# x -= 1
-				sub		t0, s2, s1				# err += 2(y-x) + 1
+				jal		zero, PrintCircle_LoopCont
+				PrintCircle_MoveRow:			# Else
+				addi	s1, s1, -1				# X -= 1
+				sub		t0, s2, s1				# Err += 2(Y-X) + 1
 				add		s3, s3, t0
 				add		s3, s3, t0
 				addi	s3, s3, 1
-				pClcont:
-				j		pCloop
+				PrintCircle_LoopCont:
+				jal		zero, PrintCircle_Loop
 		
-		pClend:
+		PrintCircle_LoopEnd:
 		# Stack Restore
 		lw		ra, -4(s0)
 		lw		s1, -8(s0)
@@ -911,7 +929,7 @@ printCircle:
 		lw		s0, 0(sp)
 		addi	sp, sp, 4
 		
-		ret
+		jalr	zero, ra, 0
 		
 #-------------------------------------------------------------------------------
 #								   END OF GLIR

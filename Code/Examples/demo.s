@@ -23,8 +23,8 @@
 # Conversion to RISC-V: Taylor Zowtuk
 # Date: June 2019
 #-------------------------------------------------------------------------------
-# A demo meant to show off GLIR's basic functions (batchPrint, printString and
-# printCircle).
+# A demo meant to show off GLIR's basic functions (GLIR_BatchPrint, 
+# GLIR_PrintString and GLIR_PrintCircle).
 #
 # RISC-V conversion notes: The original MIPS program appears to leave a long 
 # vertical bar in the print circles section of code. Without any videos or 
@@ -35,12 +35,18 @@
 #-------------------------------------------------------------------------------
 
 .data
-char:			.asciz " "
+# Here we store the RARS syscall service numbers which are needed.
+# Before a syscall we load from the label.
+# They are saved and loaded in this way to promote code portability.
+_EXIT:			.word 10
+_SLEEP:			.word 32
+
+Char:			.asciz " "
 
 .align 2
 # Only using 1 job at a time
 # 3 words + 1 halfword (sentinel)  = 3 * 4 + 2 = 14
-printList:		.space 14	
+PrintList:		.space 14	
 .text
 main:
 		# Stack Adjustments
@@ -58,26 +64,26 @@ main:
 		# Pass the size of terminal
 		li		a0, 30							# Number of rows
 		li		a1, 60							# Number of cols
-		jal		startGLIR
+		jal		ra, GLIR_Start
 		
 		# This section shows off batch printing. It prints a single job at a 
 		# time, but in theory you could add all the jobs to the list at once
 		# and have all of them print at the same time. It's slowed here so you
 		# have a chance to see it.
 		
-		li		s1, 0							# row
-		li		s2, 0							# col
-		li		s3, 0							# fgcolor, valid colors are 
+		li		s1, 0							# Row
+		li		s2, 0							# Col
+		li		s3, 0							# Fgcolor, valid colors are 
 												# between 0 and 255
-		li		s4, 100							# bgcolor, valid colors are 
+		li		s4, 100							# Bgcolor, valid colors are 
 												# between 0 and 255
-		li		s5, 0x20						# char, printable chars are 
+		li		s5, 0x20						# Char, printable chars are 
 												# between 0x20 and 0x7e
-		loop:
+		Loop:
 				li		t0, 20
-				beq		s1, t0, lend
+				beq		s1, t0, LoopEnd
 				# Create a print job by adding to the list
-				la		a0, printList
+				la		a0, PrintList
 				sh		s1, 0(a0)				# Halfword row
 				sh		s2, 2(a0)				# Halfword col
 				li		t0, 4
@@ -86,54 +92,57 @@ main:
 				sb		s3, 5(a0)				# Foreground color
 				sb		s4, 6(a0)				# Background color
 				# 7th byte is empty
-				la		t0, char
-				sb		s5, 0(t0)				# Update the char string 
+				la		t0, Char
+				sb		s5, 0(t0)				# Update the Char string 
 				sw		t0, 8(a0)				# Then provide it to the job
 				li		t0, 0xFFFF
 				sh		t0, 12(a0)				# Terminate the job list
-				jal		batchPrint
+				jal		ra, GLIR_BatchPrint
 				
-				li		a0, 1					# Wait 0.001 seconds
-				li		a7, 32
+				# Wait 0.001 seconds
+				la		a7, _SLEEP
+				lw		a7, 0(a7)
+				li		a0, 1
 				ecall
 				
-				addi	s4, s4, 1				# Goto next bgcolor
+				addi	s4, s4, 1				# Goto next Bgcolor
 				li		t0, 255
-				bne		s4, t0, lfgColor
+				bne		s4, t0, LoopFgColor
 				li		s4, 0
-				lfgColor:
-				addi	s3, s3, 1				# Goto next fgcolor
+				LoopFgColor:
+				addi	s3, s3, 1				# Goto next Fgcolor
 				li		t0, 255
-				bne		s3, t0, lchar
+				bne		s3, t0, LoopChar
 				li		s3, 0
-				lchar:
-				addi	s5, s5, 1				# Goto next char
+				LoopChar:
+				addi	s5, s5, 1				# Goto next character
 				li		t0, 0x7e
-				bne		s5, t0, lcont
+				bne		s5, t0, LoopCont
 				li		s5, 0x20
 					
 					
-				lcont:
+				LoopCont:
 				addi 	s2, s2, 1
 				li		t0, 60
-				bne		s2, t0, loop
+				bne		s2, t0, Loop
 				li		s2, 0
 				addi	s1, s1, 1
-				j		loop
+				jal		zero, Loop
 
-		lend:		
+		LoopEnd:		
 		# Wait
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
-		# Then carve out a message.
-		# This section shows off printString; just simply printing the string we
-		# want directly to a location using the current settings.
+		# Then carve out a message
+	# This section shows off GLIR_PrintString; just simply printing the 
+	# string we want directly to a location using the current settings.
 		
 		# Restore default color settings since they probably are messed up from
 		# the earlier demo
-		jal		restoreSettings	
+		jal		ra, GLIR_RestoreSettings	
 		
 		
 		# The goal is to print:
@@ -144,120 +153,124 @@ main:
 		#	@  @  @@    
 		#	@  @ @@@@   @
 
-		la		a0, char
+		la		a0, Char
 		# Print using spaces (it's black background white text)
 		li		t1, 0x20	
 		sw		t1, 0(a0)
 
-		# We're going to be hacky to save space. printString doesn't overwrite a0
-		# so lets not redefine it between calls.
+		# We're going to be hacky to save space. 
+		# GLIR_PrintString doesn't overwrite a0 so lets not redefine it between
+		# calls.
 		li		a1, 0
 		li		a2, 4
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 1
 		li		a2, 4
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 4
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 3
 		li		a2, 4
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 4
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 5
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 6
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 0
 		li		a2, 7
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 1
 		li		a2, 7
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 7
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 3
 		li		a2, 7
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 7
-		jal		printString						# Done printing H
+		jal		ra, GLIR_PrintString			# Done printing H
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 500
-		li		a7, 32
 		ecall
 		
-		la		a0, char
+		la		a0, Char
 		li		a1, 0
 		li		a2, 9
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 9
-		jal		printString
+		jal		ra, GLIR_PrintString
 
 		li		a1, 0
 		li		a2, 10
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 1
 		li		a2, 10
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 10
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 3
 		li		a2, 10
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 10
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 0
 		li		a2, 11
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 1
 		li		a2, 11
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 11
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 3
 		li		a2, 11
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 11
-		jal		printString
+		jal		ra, GLIR_PrintString
 		
 		li		a1, 0
 		li		a2, 12
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 12
-		jal		printString						# Done printing "I"
+		jal		ra, GLIR_PrintString			# Done printing "I"
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 500
-		li		a7, 32
 		ecall
 		
-		la		a0, char
+		la		a0, Char
 		li		a1, 0
 		li		a2, 15
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 1
 		li		a2, 15
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 2
 		li		a2, 15
-		jal		printString
+		jal		ra, GLIR_PrintString
 		li		a1, 4
 		li		a2, 15
-		jal		printString						# Done printing "!"
+		jal		ra, GLIR_PrintString			# Done printing "!"
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
 		
@@ -268,195 +281,194 @@ main:
 		li		a2, 0
 		# REMEMBER this is little endian so now it's [empty] [bgcolor] [fgcolor] [printing code]
 		li		a3, 0x00130003	
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 1
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
 		li		a0, 15
 		li		a1, 30
 		li		a2, 0
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 1
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 2
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 3
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
 		li		a0, 15
 		li		a1, 30
 		li		a2, 0
 		li		a3, 0x00110003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 1
 		li		a3, 0x00110003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 2
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 3
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 4
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 5
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
 		li		a0, 15
 		li		a1, 30
 		li		a2, 0
 		li		a3, 0x00100003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 1
 		li		a3, 0x00100003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 2
 		li		a3, 0x00110003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 3
 		li		a3, 0x00110003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 4
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 5
 		li		a3, 0x00120003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 6
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		li		a0, 15
 		li		a1, 30
 		li		a2, 7
 		li		a3, 0x00130003
-		jal		printCircle
+		jal		ra, GLIR_PrintCircle
 		
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li		a0, 1000
-		li		a7, 32
 		ecall
 		
-		li		s1, 2							# radius = 2 (0 and 1 already
+		li		s1, 2							# Radius = 2 (0 and 1 already
 												# covered)
-		li		s2, 0							# counter = 0
-		li		s4, 15							# max = 30
+		li		s2, 0							# Counter = 0
+		li		s4, 15							# Max = 30
 		
-		mainCircleLoop:
-				beq		s2, s4, mCLend
+		MainCircleLoop:
+				beq		s2, s4, MainCircleLoopEnd
 				
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				li		a3, 0x00100003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 1
 				li		a3, 0x00100003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 2
 				li		a3, 0x00110003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 3
 				li		a3, 0x00110003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 4
 				li		a3, 0x00120003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 5
 				li		a3, 0x00120003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 6
 				li		a3, 0x00130003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				li		a0, 15
 				li		a1, 30
 				add		a2, s1, s2
 				addi	a2, a2, 7
 				li		a3, 0x00130003
-				jal		printCircle
+				jal		ra, GLIR_PrintCircle
 				
+				la		a7, _SLEEP
+				lw		a7, 0(a7)
 				li		a0, 1000
-				li		a7, 32
 				ecall
 				
 				addi	s1, s1, 1
 				addi	s2, s2, 1
-				j		mainCircleLoop
+				jal		zero, MainCircleLoop
 		
-		mCLend:		
-		jal		restoreSettings
-		jal		clearScreen
-		li		a0, 1000
-		li		a7, 32
-		ecall
-
+		MainCircleLoopEnd:		
 		# MUST BE CALLED BEFORE ENDING PROGRAM
-		jal		endGLIR
+		jal		ra, GLIR_End
 		
 		# Stack Restore
 		lw		ra, -4(s0)
@@ -470,5 +482,6 @@ main:
 		addi	sp, sp, 4
 
 		# Exit program
-		li 		a7, 10
-		ecall	
+		la		a7, _EXIT
+		lw		a7, 0(a7)
+		ecall

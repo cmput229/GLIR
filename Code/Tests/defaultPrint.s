@@ -21,24 +21,30 @@
 # Author: Taylor Zowtuk
 # Date: June 2019
 #-------------------------------------------------------------------------------
-# A test for the batchPrint print code 1 functionality (standard print, default
-# terminal settings). Meant to print three characters diagonally. The first
-# character is printed with print code 4 and non-default terminal background and
-# foreground colors. The next two characters are printed with print code 1 and 
-# should be printed with termianl default background and foreground regardless
-# of the colors specified in their respective jobs.
+# A test for the GLIR_BatchPrint print code 1 functionality (standard print, 
+# default terminal settings). Meant to print three characters diagonally. The 
+# first character is printed with print code 4 and non-default terminal 
+# background and foreground colors. The next two characters are printed with 
+# print code 1 and should be printed with termianl default background and 
+# foreground regardless of the colors specified in their respective jobs.
 # Use the runDefaultPrint shell script to run this test.
 #-------------------------------------------------------------------------------
 
 .data
+# Here we store the RARS syscall service numbers which are needed.
+# Before a syscall we load from the label.
+# They are saved and loaded in this way to promote code portability.
+_EXIT:			.word 10
+_SLEEP:			.word 32
+
 # Three 'char' variables because each unqiue character we want to print needs to
-# pass an address containing the string to print for the batchPrint job. 
-char1:			.asciz " "	
-char2:			.asciz " "	
-char3:			.asciz " "
+# pass an address containing the string to print for the GLIR_BatchPrint job. 
+Char1:			.asciz " "	
+Char2:			.asciz " "	
+Char3:			.asciz " "
 .align 2
 # Three jobs and a null terminator 3 x 12 + 2
-printList:		.space 38
+PrintList:		.space 38
 .text
 main:
 		addi	sp, sp, -4						# Adjust the stack to save fp
@@ -50,22 +56,21 @@ main:
 		# Pass the size of terminal
 		li      a0, 5							# Number of rows
 		li      a1, 5							# Number of cols
-		jal     startGLIR
+		jal     ra, GLIR_Start
 
-		jal 	clearScreen
+		la		a0, PrintList					# Address of list for 
+												# GLIR_BatchPrint
 
-		la		a0, printList					# Address of list for batchPrint
 		# Create a print job by adding to the list
-
 		# First job
-		li		s1, 1							# row
-		li		s2, 1							# col
-		li		s3, 26							# fgcolor, valid colors are 
+		li		s1, 1							# Row
+		li		s2, 1							# Col
+		li		s3, 26							# Fgcolor, valid colors are 
 												# between 0 and 255
-		li		s4, 164							# bgcolor, valid colors are 
+		li		s4, 164							# Bgcolor, valid colors are 
 												# between 0 and 255
-		# char, printable chars are between 0x20 and 0x7e
-		li		s5, 0x32						# '2'
+		# Char, printable chars are between 0x20 and 0x7e
+		li		s5, 0x41						# 'A'
 		sh		s1, 0(a0)						# Halfword row
 		sh		s2, 2(a0)						# Halfword col
 		li		t0, 4
@@ -74,18 +79,18 @@ main:
 		sb		s3, 5(a0)						# Foreground color
 		sb		s4, 6(a0)						# Background color
 		# 7th byte is empty
-		la		t0, char1
-		sb		s5, 0(t0)						# Update the char string 
+		la		t0, Char1
+		sb		s5, 0(t0)						# Update the Char string 
 		sw		t0, 8(a0)						# Then provide it to the job
 
 		addi 	a0, a0, 12						# Increment to add next job
 		# Second job
-		li		s1, 2							# row
-		li		s2, 2							# col
-		# When print code 1 is used for a job the fg/bgcolor should be ignored
-		li		s3, 211							# fgcolor
-		li		s4, 217							# bgcolor
-		li		s5, 0x4e						# 'N'
+		li		s1, 2							# Row
+		li		s2, 2							# Col
+		# When print code 1 is used for a job the Fg/Bgcolor should be ignored
+		li		s3, 211							# Fgcolor
+		li		s4, 217							# Bgcolor
+		li		s5, 0x42						# 'B'
 		sh		s1, 0(a0)
 		sh		s2, 2(a0)
 		li		t0, 1
@@ -93,17 +98,17 @@ main:
 		sb		s3, 5(a0)		
 		sb		s4, 6(a0)		
 		# 7th byte is empty
-		la		t0, char2
+		la		t0, Char2
 		sb		s5, 0(t0)
 		sw		t0, 8(a0)
 
 		addi 	a0, a0, 12						# Increment to add next job
 		# Third job
-		li		s1, 3							# row
-		li		s2, 3							# col
-		li		s3, 157							# fgcolor
-		li		s4, 166							# bgcolor
-		li		s5, 0x57						# 'W'
+		li		s1, 3							# Row
+		li		s2, 3							# Col
+		li		s3, 157							# Fgcolor
+		li		s4, 166							# Bgcolor
+		li		s5, 0x43						# 'C'
 		sh		s1, 0(a0)	
 		sh		s2, 2(a0)
 		li		t0, 1
@@ -111,7 +116,7 @@ main:
 		sb		s3, 5(a0)
 		sb		s4, 6(a0)
 		# 7th byte is empty
-		la		t0, char3
+		la		t0, Char3
 		sb		s5, 0(t0)
 		sw		t0, 8(a0)
 		
@@ -119,16 +124,17 @@ main:
 		li		t0, 0xFFFF
 		sh		t0, 12(a0)
 
-		# a0 has been incremented a bunch; re-get the base of the printList
-		la  	a0, printList
-		jal		batchPrint
+		# a0 has been incremented a bunch; re-get the base of the PrintList
+		la  	a0, PrintList
+		jal		ra, GLIR_BatchPrint
 
 		# Wait 2.5 seconds
+		la		a7, _SLEEP
+		lw		a7, 0(a7)
 		li      a0, 2500
-		li		a7, 32
 		ecall
 
-		jal     endGLIR
+		jal     ra, GLIR_End
 
 		# Stack restore
 		lw		ra, -4(s0)
@@ -137,5 +143,6 @@ main:
 		addi	sp, sp, 4
 
 		# Exit program
-		li 		a7, 10
+		la		a7, _EXIT
+		lw		a7, 0(a7)
 		ecall
