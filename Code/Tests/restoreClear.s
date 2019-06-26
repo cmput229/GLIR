@@ -30,6 +30,8 @@
 # Use the runRestoreClear shell script to run this test.
 #-------------------------------------------------------------------------------
 
+.include "../GLIR.s"
+
 .data
 # Here we store the RARS syscall service numbers which are needed.
 # Before a syscall we load from the label.
@@ -51,7 +53,7 @@ main:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -4  					# Adjust stack to save variables
 		sw		ra, -4(s0)						# Save ra
 		

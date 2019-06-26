@@ -66,6 +66,7 @@ _TERM_COLS:		.word -1
 .align 2
 ClearScreen_String:.byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
 .text
+jal		zero, main								# Don't enter lib unless asked
 #-------------------------------------------------------------------------------
 # ClearScreen
 #
@@ -91,32 +92,31 @@ SetCursor_String:	.byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30,
 #
 # Moves the cursor to the specified location on the screen. Max location is 3 
 # digits for row number, and 3 digits for column number. (Row, Col).
+#
+# The control sequence we need is "\x1b[a1;a2H" where "\x1b"
+# is xfce4-terminal's method of passing the hex value for the ESC key.
+# This moves the cursor to the position, where we can then print.
+#
+# The command is preset in memory, with triple zeros as placeholders
+# for the char coords. We translate the args to decimal chars and edit
+# the command string, then print.
 #-------------------------------------------------------------------------------
 _GLIR_SetCursor:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -12						# Adjust stack to save variables
 		sw		ra, -4(s0)						# Save ra
 		sw		s1, -8(s0)		
-		sw		s2, -12(s0)		
-	
-	# The control sequence we need is "\x1b[a1;a2H" where "\x1b"
-	# is xfce4-terminal's method of passing the hex value for the ESC key.
-	# This moves the cursor to the position, where we can then print.
-	
-	# The command is preset in memory, with triple zeros as placeholders
-	# for the char coords. We translate the args to decimal chars and edit
-	# the command string, then print.
+		sw		s2, -12(s0)
 	
 		addi	s1, a0, 0						# s1 <- Row
 		addi	s2, a1, 0						# s2 <- Col
-	
-	# NOTE: we add 1 to each coordinate because we want (0,0) to be the top
-	# left corner of the screen, but most terminals define (1,1) as top left.
 
 		# ROW
+		# We add 1 to each coordinate because we want (0,0) to be the top
+		# left corner of the screen, but most terminals define (1,1) as top left
 		addi	a0, s1, 1
 		jal		ra, _GLIR_IntToChar
 		la		t2, SetCursor_String
@@ -188,14 +188,14 @@ GLIR_PrintString:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -8						# Adjust stack to save variables
 		sw		ra, -4(s0)						# Save ra
 		sw		s1, -8(s0)						# Save s1
 	
 	
-	# Terminal automatically rejects negative values, not certain why, but not 
-	# checking for it either
+		# Terminal automatically rejects negative values, not certain why, but
+		# not checking for it either
 		la		t0, _TERM_ROWS					# Check if past boundary
 		lw		t0, 0(t0)
 		slt		t0, t0, a1						# If TERM_ROWS < print row
@@ -273,7 +273,7 @@ GLIR_BatchPrint:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -28						# Adjust stack to save variables
 		sw		ra, -4(s0)		
 		sw		s1, -8(s0)		
@@ -283,7 +283,7 @@ GLIR_BatchPrint:
 		sw		s7, -24(s0)
 		sw		s8, -28(s0)
 	
-	# Store the last known colors, to avoid un-needed printing
+		# Store the last known colors, to avoid un-needed printing
 		li		s7, -1							# LastFg = -1
 		li		s8, -1							# LastBg = -1
 	
@@ -470,7 +470,7 @@ GLIR_SetColor:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -12						# Adjust stack to save variables
 		sw		ra, -4(s0)		
 		sw		s1, -8(s0)		
@@ -496,12 +496,12 @@ GLIR_SetColor:
 	
 		# Set the code to print foreground or background
 		beq		a1, zero, SetColor_SetBg
-				# Setting foreground
-				li		t1, 0x33
-				jal		zero, SetColor_Set
+		# Setting foreground
+		li		t1, 0x33
+		jal		zero, SetColor_Set
 		SetColor_SetBg:
-				# Setting background
-				li		t1, 0x34
+		# Setting background
+		li		t1, 0x34
 
 		SetColor_Set:
 		sb		t1, 2(t0)
@@ -553,7 +553,7 @@ GLIR_Start:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp	
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -4						# Adjust stack to save ra
 		sw		ra, -4(s0)
 	
@@ -581,7 +581,7 @@ GLIR_End:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -4						# Adjust stack to save variables
 		sw		ra, -4(s0)
 	
@@ -651,13 +651,13 @@ SetDisplaySize_String:	.byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3
 #
 # Prints the escape sequence that changes the size of the display to match the 
 # parameters passed. The number of rows and cols are ints x and y such that: 
-# 0 <= x,y <= 999
+# 0 <= x,y <= 999.
 #-------------------------------------------------------------------------------
 _GLIR_SetDisplaySize:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -12						# Adjust stack to save variables
 		sw		ra, -4(s0)		
 		sw		s1, -8(s0)		
@@ -746,7 +746,7 @@ GLIR_ColorDemo:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -16						# Adjust stack to save variables		
 		sw    	ra, -4(s0)		
 		sw		s1, -8(s0)		
@@ -755,7 +755,8 @@ GLIR_ColorDemo:
 
 		jal		ra, GLIR_ClearScreen
 		# Print the colored boxes, skip the first 15 because its prettier
-		# Start at color 16 so that we dont get offset weirdly by the first 15 colors
+		# Start at color 16 so that we dont get offset weirdly by the first 15
+		# colors
 		li		s1, 16							# Color
 		li		s2, 1							# Col
 		li		s3, 1							# Row
@@ -792,7 +793,7 @@ GLIR_ColorDemo:
 	
 .data
 .align 2
-PrintCircle_List:	.space 100					# 9*3*4 words, only prints 8 
+PrintCircle_List:	.space 98					# 8*3*4 bytes + 2, only prints 8 
 												# pixels at a time
 PrintCircle_Char:	.asciz " " 					# Character to print with
 .text
@@ -807,12 +808,22 @@ PrintCircle_Char:	.asciz " " 					# Character to print with
 #
 # Prints a circle onto the screen using the midpoint circle algorithm and the 
 # character PrintCircle_Char.
+#
+# Valid Printing codes:
+# 0 = skip printing
+# 1 = standard print, default terminal settings
+# 2 = print using foreground color
+# 3 = print using background color
+# 4 = print using all colors
+# 
+# xfce4-terminal supports the 256 color lookup table assignment; see the index 
+# for a list of color codes.
 #-------------------------------------------------------------------------------
 GLIR_PrintCircle:
 		# Stack Adjustments
 		addi	sp, sp, -4						# Adjust the stack to save fp
 		sw		s0, 0(sp)						# Save fp
-		add		s0, zero, sp					# fp <= sp
+		add		s0, zero, sp					# fp <- sp
 		addi	sp, sp, -36						# Adjust stack to save variables
 		sw    	ra, -4(s0)		
 		sw		s1, -8(s0)		
@@ -828,9 +839,9 @@ GLIR_PrintCircle:
 		li		s2, 0							# Col = 0
 		li		s3, 0							# Err = 0
 		la		s4, PrintCircle_Char
-		addi	s5, a0, 0						# Store the args
-		addi	s6, a1, 0
-		addi	s7, a3, 0
+		addi	s5, a0, 0						# s5 <- RowCenter 
+		addi	s6, a1, 0						# s6 <- ColCenter
+		addi	s7, a3, 0						# s7 <- PrintSettings
 		
 		PrintCircle_Loop:						# While (Col <= Row)
 				addi	t1, s2, -1
@@ -838,64 +849,102 @@ GLIR_PrintCircle:
 				beq		t0, zero, PrintCircle_LoopEnd
 				# Draw a pixel to each octant of the screen
 				la		t0, PrintCircle_List
-				add		t1, s5, s1
-				add		t2, s6, s2
-				sh		t1, 0(t0)				# Pixel location
-				sh		t2, 2(t0)
-				sw		s7, 4(t0)				# Pixel printing code
-				sw		s4, 8(t0)
+
+				# Draw first pixel in 4th quadrant
+				add		t1, s5, s1				# y <- RowCenter + Row	
+				add		t2, s6, s2				# x <- ColCenter + Col
+				# Store pixel location
+				sh		t1, 0(t0)				# Print row
+				sh		t2, 2(t0)				# Print col
+				sw		s7, 4(t0)				# Store PrintSettings
+				sw		s4, 8(t0)				# Store pixel to print
 				addi	t0, t0, 12
-				add		t1, s5, s2
-				add		t2, s6, s1
+
+				# Draw second pixel in 4th quadrant reflection on x = -y
+				add		t1, s5, s2				# y <- RowCenter + Col
+				add		t2, s6, s1				# x <- ColCenter + Row
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				sub		t1, s5, s2
-				add		t2, s6, s1
+
+				# Draw first pixel in 1st quadrant
+				sub		t1, s5, s2				# y <- RowCenter - Col
+				add		t2, s6, s1				# x <- ColCenter + Row
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				sub		t1, s5, s1
-				add		t2, s6, s2
+
+				# Draw second pixel in 1st quadrant reflection on x = y
+				sub		t1, s5, s1				# y <- RowCenter - Row
+				add		t2, s6, s2				# x <- ColCenter + Col
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				sub		t1, s5, s1
-				sub		t2, s6, s2
+
+				# Draw first pixel in 2nd quadrant
+				sub		t1, s5, s1				# y <- RowCenter - Row
+				sub		t2, s6, s2				# x <- ColCenter - Col
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				sub		t1, s5, s2
-				sub		t2, s6, s1
+
+				# Draw second pixel in 2nd quadrant reflection on x = -y
+				sub		t1, s5, s2				# y <- RowCenter - Col
+				sub		t2, s6, s1				# x <- ColCenter - Row
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				add		t1, s5, s2
-				sub		t2, s6, s1
+
+				# Draw first pixel in 3rd quadrant
+				add		t1, s5, s2				# y <- RowCenter + Col
+				sub		t2, s6, s1				# x <- ColCenter - Row
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
-				add		t1, s5, s1
-				sub		t2, s6, s2
+
+				# Draw second pixel in 3rd quadrant reflection on x = y
+				add		t1, s5, s1				# y <- RowCenter + Row
+				sub		t2, s6, s2				# x <- ColCenter - Col
 				sh		t1, 0(t0)
 				sh		t2, 2(t0)
 				sw		s7, 4(t0)
 				sw		s4, 8(t0)
 				addi	t0, t0, 12
+
+				# Terminate batch
 				li		t1, 0xFFFF
 				sh		t1, 0(t0)
+
+				# Sterilize the input to GLIR_BatchPrint of the guard value 
+				# 0xFFFF in print row to avoid not printing the remainder of a
+				# batch if the guard is encountered
+				addi	t0, zero, 0				# i = 0
+				addi	t1,	zero, 8				# Loop 8 times
+				la		t2, PrintCircle_List
+				PrintCircle_GuardLoop:
+				lhu		t3, 0(t2)				# Print row
+				li		t4, 0xFFFF				# Guard
+				bne		t3, t4, PrintCircle_Sterile
+				sb		zero, 4(t2)				# Set print code 0
+				sh		zero, 0(t2)				# Reset print row
+				PrintCircle_Sterile:
+				addi	t2, t2, 12				# Increment by 3 words (1 job)
+				addi	t0,	t0, 1				# i++
+				bne		t0, t1, PrintCircle_GuardLoop	
+
+				PrintCircle_GuardEnd:
 				la		a0, PrintCircle_List
 				jal		ra, GLIR_BatchPrint
 				
