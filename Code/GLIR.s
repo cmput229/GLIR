@@ -299,18 +299,18 @@ GLIR_BatchPrint:
                 beq     s2, t0, BatchPrint_ScanEnd
 
                 # Extract printing code
-                lbu     s4, 4(s1)               # Print code (PCode)
+                lbu     s4, 4(s1)               # PrintCode
                 # Skip if printing code is 0
                 beq     s4, zero, BatchPrint_ScanCont
 
                 # Print to match printing code if needed
                 # If standard print, make sure to clear the current color
                 # settings
-                li      t0, 1                   # If PCode != 1
-                bne     s4, t0, BatchPrint_ScanClearEnd
+                li      t0, 1
+                bne     s4, t0, BatchPrint_ScanClearEnd     # If PrintCode != 1
                 # Check if we need to reset the color
-                # If Fg and Bg are -1 then current settings are terminal default
                 li      t0, -1
+                # If Fg and Bg are -1 then current settings are terminal default
                 bne     s7, t0, BatchPrint_ScanClearColor   # If LastFg != -1
                 bne     s8, t0, BatchPrint_ScanClearColor   # OR LastBg != -1
                 jal     zero, BatchPrint_ScanClearEnd
@@ -321,7 +321,8 @@ GLIR_BatchPrint:
 
                 BatchPrint_ScanClearEnd:
                 # Change foreground color if needed
-                li      t0, 2                   # If PCode == 2 or PCode == 4
+                # If PrintCode == 2 or PrintCode == 4
+                li      t0, 2
                 beq     s4, t0, BatchPrint_FgColor
                 li      t0, 4
                 beq     s4, t0, BatchPrint_FgColor
@@ -336,7 +337,8 @@ GLIR_BatchPrint:
 
                 BatchPrint_FgColorEnd:
                 # Change background color if needed
-                li      t0, 3                   # If PCode == 3 or PCode == 4
+                # If PrintCode == 3 or PrintCode == 4
+                li      t0, 3
                 beq     s4, t0, BatchPrint_BgColor
                 li      t0, 4
                 beq     s4, t0, BatchPrint_BgColor
@@ -457,8 +459,8 @@ SetColor_String:    .byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30,
 .text
 #-------------------------------------------------------------------------------
 # SetColor
-# Args:        a0 = color code (see index)
-#             a1 = 0 if setting background, 1 if setting foreground
+# Args:     a0 = color code (see index)
+#           a1 = 0 if setting background, 1 if setting foreground
 #
 # Prints the escape sequence that sets the color of the text to the color
 # specified.
@@ -641,8 +643,8 @@ _GLIR_ShowCursor:
 
 .data
 .align 2
-SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30, 0x3b,
-                        0x30, 0x30, 0x30, 0x30, 0x74, 0x00
+SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30,
+                        0x3b, 0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
 #-------------------------------------------------------------------------------
 # SetDisplaySize
@@ -853,12 +855,12 @@ GLIR_PrintCircle:
                 addi    t1, s2, -1
                 slt     t0, t1, s1
                 beq     t0, zero, PrintCircle_LoopEnd
-                # Draw a pixel to each octant of the screen
+                # Draw a pixel to each octant of the screen (R,C) <-> (x,y)
                 la      t0, PrintCircle_List
 
                 # Draw first pixel in 4th quadrant
-                add     t1, s5, s1              # y <- RowCenter + Row
-                add     t2, s6, s2              # x <- ColCenter + Col
+                add     t1, s5, s1              # x <- RowCenter + Row
+                add     t2, s6, s2              # y <- ColCenter + Col
                 # Store pixel location
                 sh      t1, 0(t0)               # Print row
                 sh      t2, 2(t0)               # Print col
@@ -866,9 +868,9 @@ GLIR_PrintCircle:
                 sw      s4, 8(t0)               # Store pixel to print
                 addi    t0, t0, 12
 
-                # Draw second pixel in 4th quadrant reflection on x = -y
-                add     t1, s5, s2              # y <- RowCenter + Col
-                add     t2, s6, s1              # x <- ColCenter + Row
+                # Draw second pixel in 4th quadrant reflection on y = -x
+                add     t1, s5, s2              # x <- RowCenter + Col
+                add     t2, s6, s1              # y <- ColCenter + Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -876,17 +878,17 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 1st quadrant
-                sub     t1, s5, s2              # y <- RowCenter - Col
-                add     t2, s6, s1              # x <- ColCenter + Row
+                sub     t1, s5, s2              # x <- RowCenter - Col
+                add     t2, s6, s1              # y <- ColCenter + Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 1st quadrant reflection on x = y
-                sub     t1, s5, s1              # y <- RowCenter - Row
-                add     t2, s6, s2              # x <- ColCenter + Col
+                # Draw second pixel in 1st quadrant reflection on y = x
+                sub     t1, s5, s1              # x <- RowCenter - Row
+                add     t2, s6, s2              # y <- ColCenter + Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -894,17 +896,17 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 2nd quadrant
-                sub     t1, s5, s1              # y <- RowCenter - Row
-                sub     t2, s6, s2              # x <- ColCenter - Col
+                sub     t1, s5, s1              # x <- RowCenter - Row
+                sub     t2, s6, s2              # y <- ColCenter - Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 2nd quadrant reflection on x = -y
-                sub     t1, s5, s2              # y <- RowCenter - Col
-                sub     t2, s6, s1              # x <- ColCenter - Row
+                # Draw second pixel in 2nd quadrant reflection on y = -x
+                sub     t1, s5, s2              # x <- RowCenter - Col
+                sub     t2, s6, s1              # y <- ColCenter - Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -912,17 +914,17 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 3rd quadrant
-                add     t1, s5, s2              # y <- RowCenter + Col
-                sub     t2, s6, s1              # x <- ColCenter - Row
+                add     t1, s5, s2              # x <- RowCenter + Col
+                sub     t2, s6, s1              # y <- ColCenter - Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 3rd quadrant reflection on x = y
-                add     t1, s5, s1              # y <- RowCenter + Row
-                sub     t2, s6, s2              # x <- ColCenter - Col
+                # Draw second pixel in 3rd quadrant reflection on y = x
+                add     t1, s5, s1              # x <- RowCenter + Row
+                sub     t2, s6, s2              # y <- ColCenter - Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
