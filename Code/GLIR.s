@@ -26,7 +26,7 @@
 # Date: June 2017
 # Conversion to RISC-V: Taylor Zowtuk
 # Date: June 2019
-# Version: 2019.6.18
+# Version: 1.0
 #-------------------------------------------------------------------------------
 # This is a graphics library, supporting drawing pixels, and some basic
 # primitives.
@@ -161,8 +161,8 @@ _GLIR_SetCursor:
 #-------------------------------------------------------------------------------
 # PrintString
 # Args:     a0 = address of string to print
-#           a1 = integer value 0-999, row to print to (y position)
-#           a2 = integer value 0-999, col to print to (x position)
+#           a1 = integer value 0-999, row to print to
+#           a2 = integer value 0-999, col to print to
 #
 # Prints the specified null-terminated string according to the printing
 # preferences of your terminal (standard terminals print left to right, top to
@@ -652,8 +652,8 @@ SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30,
 #           a1 = number of columns
 #
 # Prints the escape sequence that changes the size of the display to match the
-# parameters passed. The number of rows and cols are ints x and y such that:
-# 0 <= x,y <= 999.
+# parameters passed. The number of rows and cols are ints R and C such that:
+# 0 <= R,C <= 999.
 #-------------------------------------------------------------------------------
 _GLIR_SetDisplaySize:
         # Stack Adjustments
@@ -825,7 +825,33 @@ PrintCircle_Char:   .asciz " "                  # Character to print with
 # Terminals were designed to print text top to bottom, left to right. Their
 # underlying control structures are built on this assumption. Thus the row
 # number comes before the column number. The origin (0, 0) is at the top left of
-# the xfce4-terminal window.
+# the xfce4-terminal window. Below is an ascii diagram of the notation used in
+# the comments of the subroutine. The numbers 1,2,3,4 correspond to the
+# quadrants.
+#
+#  (0,0)
+#    /--------------------------------------> Col
+#    |            |
+#    |            |
+#    |           ███
+#    |         ██ | ██
+#    |        █   |   █
+#    |       █    |    █
+#    |      █  2  |  1  █
+#    |      █     |     █
+#    |     █      |      █
+#    | ----█------+------█----
+#    |     █      |      █
+#    |      █     |     █
+#    |      █  3  |  4  █
+#    |       █    |    █
+#    |        █   |   █
+#    |         ██ | ██
+#    |           ███
+#    |            |
+#    |            |
+#    v
+#    Row
 #-------------------------------------------------------------------------------
 GLIR_PrintCircle:
         # Stack Adjustments
@@ -855,12 +881,12 @@ GLIR_PrintCircle:
                 addi    t1, s2, -1
                 slt     t0, t1, s1
                 beq     t0, zero, PrintCircle_LoopEnd
-                # Draw a pixel to each octant of the screen (R,C) <-> (x,y)
+                # Draw a pixel to each octant of the screen (R,C)
                 la      t0, PrintCircle_List
 
                 # Draw first pixel in 4th quadrant
-                add     t1, s5, s1              # x <- RowCenter + Row
-                add     t2, s6, s2              # y <- ColCenter + Col
+                add     t1, s5, s1              # R <- RowCenter + Row
+                add     t2, s6, s2              # C <- ColCenter + Col
                 # Store pixel location
                 sh      t1, 0(t0)               # Print row
                 sh      t2, 2(t0)               # Print col
@@ -868,9 +894,9 @@ GLIR_PrintCircle:
                 sw      s4, 8(t0)               # Store pixel to print
                 addi    t0, t0, 12
 
-                # Draw second pixel in 4th quadrant reflection on y = -x
-                add     t1, s5, s2              # x <- RowCenter + Col
-                add     t2, s6, s1              # y <- ColCenter + Row
+                # Draw second pixel in 4th quadrant reflection on R = C
+                add     t1, s5, s2              # R <- RowCenter + Col
+                add     t2, s6, s1              # C <- ColCenter + Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -878,17 +904,18 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 1st quadrant
-                sub     t1, s5, s2              # x <- RowCenter - Col
-                add     t2, s6, s1              # y <- ColCenter + Row
+                sub     t1, s5, s2              # R <- RowCenter - Col
+                add     t2, s6, s1              # C <- ColCenter + Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 1st quadrant reflection on y = x
-                sub     t1, s5, s1              # x <- RowCenter - Row
-                add     t2, s6, s2              # y <- ColCenter + Col
+                # Draw second pixel in 1st quadrant reflection on:
+                # R = ColCenter + RowCenter - C
+                sub     t1, s5, s1              # R <- RowCenter - Row
+                add     t2, s6, s2              # C <- ColCenter + Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -896,17 +923,17 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 2nd quadrant
-                sub     t1, s5, s1              # x <- RowCenter - Row
-                sub     t2, s6, s2              # y <- ColCenter - Col
+                sub     t1, s5, s1              # R <- RowCenter - Row
+                sub     t2, s6, s2              # C <- ColCenter - Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 2nd quadrant reflection on y = -x
-                sub     t1, s5, s2              # x <- RowCenter - Col
-                sub     t2, s6, s1              # y <- ColCenter - Row
+                # Draw second pixel in 2nd quadrant reflection on R = C
+                sub     t1, s5, s2              # R <- RowCenter - Col
+                sub     t2, s6, s1              # C <- ColCenter - Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -914,17 +941,18 @@ GLIR_PrintCircle:
                 addi    t0, t0, 12
 
                 # Draw first pixel in 3rd quadrant
-                add     t1, s5, s2              # x <- RowCenter + Col
-                sub     t2, s6, s1              # y <- ColCenter - Row
+                add     t1, s5, s2              # R <- RowCenter + Col
+                sub     t2, s6, s1              # C <- ColCenter - Row
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
                 sw      s4, 8(t0)
                 addi    t0, t0, 12
 
-                # Draw second pixel in 3rd quadrant reflection on y = x
-                add     t1, s5, s1              # x <- RowCenter + Row
-                sub     t2, s6, s2              # y <- ColCenter - Col
+                # Draw second pixel in 3rd quadrant reflection on:
+                # R = ColCenter + RowCenter - C
+                add     t1, s5, s1              # R <- RowCenter + Row
+                sub     t2, s6, s2              # C <- ColCenter - Col
                 sh      t1, 0(t0)
                 sh      t2, 2(t0)
                 sw      s7, 4(t0)
@@ -938,8 +966,8 @@ GLIR_PrintCircle:
                 # Sterilize the input to GLIR_BatchPrint of the guard value
                 # 0xFFFF in print row to avoid not printing the remainder of a
                 # batch if the guard is encountered
-                addi    t0, zero, 0             # i = 0
-                addi    t1,    zero, 8          # Loop 8 times
+                addi    t0, zero, 0             # I = 0
+                addi    t1, zero, 8             # Loop 8 times
                 la      t2, PrintCircle_List
                 PrintCircle_GuardLoop:
                 lhu     t3, 0(t2)               # Print row
@@ -949,22 +977,22 @@ GLIR_PrintCircle:
                 sh      zero, 0(t2)             # Reset print row
                 PrintCircle_Sterile:
                 addi    t2, t2, 12              # Increment by 3 words (1 job)
-                addi    t0,    t0, 1            # i++
+                addi    t0, t0, 1               # I++
                 bne     t0, t1, PrintCircle_GuardLoop
 
                 PrintCircle_GuardEnd:
                 la      a0, PrintCircle_List
                 jal     ra, GLIR_BatchPrint
 
-                addi    s2, s2, 1               # Y += 1
+                addi    s2, s2, 1               # C += 1
                 blt     zero, s3, PrintCircle_MoveRow   # If (Err <= 0)
-                add     s3, s3, s2              # Err += 2Y+1
+                add     s3, s3, s2              # Err += 2 * C + 1
                 add     s3, s3, s2
                 addi    s3, s3, 1
                 jal     zero, PrintCircle_LoopCont
                 PrintCircle_MoveRow:            # Else
-                addi    s1, s1, -1              # X -= 1
-                sub     t0, s2, s1              # Err += 2(Y-X) + 1
+                addi    s1, s1, -1              # R -= 1
+                sub     t0, s2, s1              # Err += 2(C - R) + 1
                 add     s3, s3, t0
                 add     s3, s3, t0
                 addi    s3, s3, 1

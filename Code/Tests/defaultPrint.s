@@ -46,7 +46,7 @@ Char1:          .asciz " "
 Char2:          .asciz " "
 Char3:          .asciz " "
 .align 2
-# Three jobs and a null terminator 3 x 12 + 2
+# Three jobs and a null terminator 3 * 12 + 2
 PrintList:      .space 38
 .text
 main:
