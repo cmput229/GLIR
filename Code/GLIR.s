@@ -792,7 +792,120 @@ GLIR_ColorDemo:
         addi    sp, sp, 4
 
         jalr    zero, ra, 0
+.data
+.align 2
+PrintLine_Char:   .asciz "█"                  # Character to print with
+.text
+#-------------------------------------------------------------------------------
+# PrintLine
+# Args:     a0 = Row1
+#           a1 = Col1
+#           a2 = Row2
+#           a3 = Col2
+#
+# Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).
+# Algorithm from: 
+# https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h
+#-------------------------------------------------------------------------------
+GLIR_PrintLine:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -64                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+        sw      s8, -36(s0)
+        sw      s9, -40(s0)
+        sw      s10, -44(s0)
+        sw      s11, -48(s0)
+        sw      a0, -52(s0)                     # Row1 at -52(s0)
+        sw      a1, -56(s0)                     # Col1 at -56(s0)
+        sw      a2, -60(s0)                     # Row2 at -60(s0)
+        sw      a3, -64(s0)                     # Col2 at -64(s0)
 
+        sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
+        sub     s2, a3, a1                      # DCol = s2 <- col2 - col1
+        
+        add     a0, s1, zero
+        jal     ra, _GLIR_Abs
+        add     s3, a0, zero                    # DRow1 = s3 <- abs(DRow)
+        add     a0, s2, zero
+        jal     ra, _GLIR_Abs
+        add     s4, a0, zero                    # DCol1 = s4 <- abs(DCol)
+
+        addi    t0, zero, 2
+        mul     t1, t0, s4                      # t1 <- 2 * DCol1
+        # Not checking upper 32 bits of the multiplication b/c DCol1 
+        # should be a small enough number
+        sub     s5, t1, s3                      # PRow = s5 <- 2 * DCol1 - DRow1
+        mul     t1, t0, s3                      # t1 <- 2 * DRow1
+        # Not checking upper 32 bits of the multiplication b/c DRow1
+        # should be a small enough number
+        sub     s6, t1, s4                      # PCol = s6 <- 2 * DRow1 - DCol1
+
+        blt     s3, s4, PrintLine_OuterElse     # If DCol1 > DRow1 goto 
+                                                # PrintLine_OuterElse
+        # Set the start and endpoints for the loop
+        blt     s1, zero, PrintLine_Point1Ends  # If DRow < 0 goto
+                                                # PrintLine_Point1Ends
+        lw      t0, -52(s0)                     # t0 <- Row1
+        lw      t1, -56(s0)                     # t1 <- Col1
+        lw      t2, -60(s0)                     # t2 <- Row2
+        add     s7, t0, zero                    # Row = s7 <- Row1
+        add     s8, t1, zero                    # Col = s8 <- Col1
+        add     s9, t2, zero                    # RowEnd = s9 <- Row2
+        jal     zero, PrintLine_DrawFirstRow
+        
+        PrintLine_Point1Ends:
+        lw      t0, -60(s0)                     # t0 <- Row2
+        lw      t1, -64(s0)                     # t1 <- Col2
+        lw      t2, -52(s0)                     # t2 <- Row1
+        add     s7, t0, zero                    # Row = s7 <- Row2
+        add     s8, t1, zero                    # Col = s8 <- Col2
+        add     s9, t2, zero                    # RowEnd = s9 <- Row1
+
+        PrintLine_DrawFirstRow:
+        # Set the color of the foreground for the text
+        li      a0, 33                          # Color; DodgerBlue1
+        li      a1, 1                           # Foreground
+        jal     ra, GLIR_SetColor
+        la      a0, PrintLine_Char
+        add     a1, s7, zero
+        add     a2, s8, zero
+        jal     ra, GLIR_PrintString
+
+        PrintLine_OuterElse:
+
+
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        lw      s8, -36(s0)
+        lw      s9, -40(s0)
+        lw      s10, -44(s0)
+        lw      s11, -48(s0)
+        #lw      a0, -52(s0)
+        #lw      a1, -56(s0)
+        #lw      a2, -60(s0)
+        #lw      a3, -64(s0)
+        addi    sp, sp, 64
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
 .data
 .align 2
 PrintCircle_List:   .space 98                   # 8*3*4 bytes + 2, only prints 8
@@ -1013,6 +1126,23 @@ GLIR_PrintCircle:
         addi    sp, sp, 36
         lw      s0, 0(sp)
         addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+#-------------------------------------------------------------------------------
+# Abs
+# Args:     a0 = int to convert; x
+# Returns:  a0 = abs(x)
+#
+# Branch-less absolute value calculation of a 32-bit int.
+#-------------------------------------------------------------------------------
+_GLIR_Abs:
+        srai    t0, a0, 31
+        # If x is +ve t0 will equal 0, otherwise t0 will equal 0xFFFF FFFF
+        xor     a0, a0, t0
+        # Inverted each bit if t0 is 0xFFFF FFFF, otherwise left unchanged          
+        sub     a0, a0, t0
+        # Sutract -1 from inversion if x was negative, otherwise subtract 0
 
         jalr    zero, ra, 0
 
