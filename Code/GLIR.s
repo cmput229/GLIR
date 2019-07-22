@@ -792,6 +792,7 @@ GLIR_ColorDemo:
         addi    sp, sp, 4
 
         jalr    zero, ra, 0
+
 .data
 .align 2
 PrintLine_Char:   .asciz "█"                  # Character to print with
@@ -813,7 +814,7 @@ GLIR_PrintLine:
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -64                     # Adjust stack to save variables
+        addi    sp, sp, -68                     # Adjust stack to save variables
         sw      ra, -4(s0)
         sw      s1, -8(s0)
         sw      s2, -12(s0)
@@ -833,7 +834,9 @@ GLIR_PrintLine:
         sw      a4, -68(s0)                     # Color at -68(s0)
 
         # Horizontal and vertical straight lines are not working... possibly b/c
-        # this algo is meant to project x,y,z onto x,y first. Can simply add a
+        # this algo is meant to project x,y,z onto x,y first. Never enters the
+        # innermost if to update row/col because DRow/DCol will be 0 and 
+        # therefore PCol/PRow will never not equal 0. Can simply add a
         # check for row's being the same or columns being the same.
 
         sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
@@ -1004,16 +1007,82 @@ GLIR_PrintLine:
         lw      s9, -40(s0)
         lw      s10, -44(s0)
         lw      s11, -48(s0)
-        #lw      a0, -52(s0)
-        #lw      a1, -56(s0)
-        #lw      a2, -60(s0)
-        #lw      a3, -64(s0)
-        #lw      a4, -68(s0)
-        addi    sp, sp, 64
+        addi    sp, sp, 68
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
         jalr    zero, ra, 0
+
+.text
+#-------------------------------------------------------------------------------
+# PrintTriangle
+# Args:     a0 = Row1
+#           a1 = Col1
+#           a2 = Row2
+#           a3 = Col2
+#           a4 = Row3
+#           a5 = Col3
+#           a6 = Color to print with
+#
+# Prints a triangle onto the screen connected by the points (Row1, Col1), 
+# (Row2, Col2), (Row3, Col3).
+#-------------------------------------------------------------------------------
+GLIR_PrintTriangle:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -32                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+
+        add     s1, a0, zero                    # s1 = Row1
+        add     s2, a1, zero                    # s2 = Col1
+        add     s3, a2, zero                    # s3 = Row2
+        add     s4, a3, zero                    # s4 = Col2
+        add     s5, a4, zero                    # s5 = Row3
+        add     s6, a5, zero                    # s6 = Col3
+        add     s7, a6, zero                    # s7 = Color
+
+        # a0, a1 = (Row1, Col1) and a2, a3 = (Row2, Col2) currently
+        add     a4, s7, zero
+        jal     ra, GLIR_PrintLine
+
+        add     a0, s3, zero
+        add     a1, s4, zero
+        add     a2, s5, zero
+        add     a3, s6, zero
+        add     a4, s7, zero
+        jal     ra, GLIR_PrintLine
+
+        add     a0, s5, zero
+        add     a1, s6, zero
+        add     a2, s1, zero
+        add     a3, s2, zero
+        add     a4, s7, zero
+        jal     ra, GLIR_PrintLine
+
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        addi    sp, sp, 32
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
 .data
 .align 2
 PrintCircle_List:   .space 98                   # 8*3*4 bytes + 2, only prints 8
