@@ -802,6 +802,7 @@ PrintLine_Char:   .asciz "█"                  # Character to print with
 #           a1 = Col1
 #           a2 = Row2
 #           a3 = Col2
+#           a4 = Color to print with
 #
 # Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).
 # Algorithm from: 
@@ -829,6 +830,7 @@ GLIR_PrintLine:
         sw      a1, -56(s0)                     # Col1 at -56(s0)
         sw      a2, -60(s0)                     # Row2 at -60(s0)
         sw      a3, -64(s0)                     # Col2 at -64(s0)
+        sw      a4, -68(s0)                     # Color at -68(s0)
 
         sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
         sub     s2, a3, a1                      # DCol = s2 <- col2 - col1
@@ -850,40 +852,80 @@ GLIR_PrintLine:
         # should be a small enough number
         sub     s6, t1, s4                      # PCol = s6 <- 2 * DRow1 - DCol1
 
+        # Set the color of the foreground for the text
+        lw      a0, -68(s0)                     # Color
+        li      a1, 1                           # Foreground
+        jal     ra, GLIR_SetColor
+
+        # Begin checking how we should print
         blt     s3, s4, PrintLine_OuterElse     # If DCol1 > DRow1 goto 
                                                 # PrintLine_OuterElse
         # Set the start and endpoints for the loop
         blt     s1, zero, PrintLine_Point1Ends  # If DRow < 0 goto
                                                 # PrintLine_Point1Ends
-        lw      t0, -52(s0)                     # t0 <- Row1
-        lw      t1, -56(s0)                     # t1 <- Col1
-        lw      t2, -60(s0)                     # t2 <- Row2
-        add     s7, t0, zero                    # Row = s7 <- Row1
-        add     s8, t1, zero                    # Col = s8 <- Col1
-        add     s9, t2, zero                    # RowEnd = s9 <- Row2
+        lw      s7, -52(s0)                     # Row = s7 <- Row1
+        lw      s8, -56(s0)                     # Col = s8 <- Col1
+        lw      s9, -60(s0)                     # RowEnd = s9 <- Row2
         jal     zero, PrintLine_DrawFirstRow
         
         PrintLine_Point1Ends:
-        lw      t0, -60(s0)                     # t0 <- Row2
-        lw      t1, -64(s0)                     # t1 <- Col2
-        lw      t2, -52(s0)                     # t2 <- Row1
-        add     s7, t0, zero                    # Row = s7 <- Row2
-        add     s8, t1, zero                    # Col = s8 <- Col2
-        add     s9, t2, zero                    # RowEnd = s9 <- Row1
+        lw      s7, -60(s0)                     # Row = s7 <- Row2
+        lw      s8, -64(s0)                     # Col = s8 <- Col2
+        lw      s9, -52(s0)                     # RowEnd = s9 <- Row1
 
         PrintLine_DrawFirstRow:
-        # Set the color of the foreground for the text
-        li      a0, 33                          # Color; DodgerBlue1
-        li      a1, 1                           # Foreground
-        jal     ra, GLIR_SetColor
+        # Draw first point
         la      a0, PrintLine_Char
         add     a1, s7, zero
         add     a2, s8, zero
         jal     ra, GLIR_PrintString
 
+        # Draw points between first point and RowEnd
+        PrintLine_RowLoop:
+        bge     s7, s9, PrintLine_End           # If Row >= RowEnd goto
+                                                # PrintLine_End         
+        addi    s7, s7, 1                       # Row = Row + 1
+        bge     s5, zero, PrintLine_CheckCol    # If PRow > 0 goto 
+                                                # PrintLine_CheckCol
+        li      t0, 2
+        mul     t1, s4, t0
+        add     s5, s5, t1                      # PRow = PRow + 2 * DCol1
+        jal     zero, PrintLine_RowLoop
+
+        PrintLine_CheckCol:
+        # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; else y--;
+        bge     s1, zero, PrintLine_Or          # If DRow >= 0 goto ...
+        blt     s2, zero, PrintLine_IncCol      # If DCol < 0 goto...
+
+        PrintLine_Or:
+        bge     zero, s1, PrintLine_DecCol      # If DRow <= 0 goto...
+        bge     zero, s2, PrintLine_DecCol      # If DCol <= 0 goto...
+
+        PrintLine_IncCol:
+        addi    s8, s8, 1                       # Col = Col + 1
+        jal     zero, PrintLine_UpdatePRow
+        PrintLine_DecCol:
+        addi    s8, s8, -1                      # Col = Col - 1
+
+        PrintLine_UpdatePRow:
+        li      t0, 2
+        sub     t1, s4, s3
+        mul     t1, t1, t0
+        # Not checking upper 32 bits of the multiplication b/c
+        # (DCol1 - DRow1) should be a small enough number
+        add     s5, s5, t1                      # PRow = PRow + 2 * 
+                                                # (DCol1 - DRow1)
+        # Draw a point
+        la      a0, PrintLine_Char
+        add     a1, s7, zero
+        add     a2, s8, zero
+        jal     ra, GLIR_PrintString
+        jal     zero, PrintLine_RowLoop
+
+
         PrintLine_OuterElse:
 
-
+        PrintLine_End:
         # Stack Restore
         lw      ra, -4(s0)
         lw      s1, -8(s0)
@@ -901,6 +943,7 @@ GLIR_PrintLine:
         #lw      a1, -56(s0)
         #lw      a2, -60(s0)
         #lw      a3, -64(s0)
+        #lw      a4, -68(s0)
         addi    sp, sp, 64
         lw      s0, 0(sp)
         addi    sp, sp, 4
