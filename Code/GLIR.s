@@ -195,10 +195,8 @@ GLIR_PrintString:
         sw      ra, -4(s0)                      # Save ra
         sw      s1, -8(s0)
 
-
-        # Terminal automatically rejects negative values, not certain why, but
-        # not checking for it either
-        la      t0, _TERM_ROWS                  # Check if past boundary
+        # Check if past boundaries
+        la      t0, _TERM_ROWS                
         lw      t0, 0(t0)
         slt     t0, t0, a1                      # If TERM_ROWS < print row
 
@@ -206,8 +204,15 @@ GLIR_PrintString:
         lw      t1, 0(t1)
         slt     t1, t1, a2                      # or if TERM_COLS < print col
 
+        slt     t2, a1, zero                    # or if print row < 0
+
+        slt     t3, a2, zero                    # or if print col < 0
+
         or      t0, t0, t1
+        or      t2, t2, t3
+        or      t0, t0, t2
         bne     t0, zero, PrintString_End       # then do nothing
+
 
         # Else
         addi    s1, a0, 0
@@ -1076,6 +1081,92 @@ GLIR_PrintTriangle:
         add     a3, s2, zero
         add     a4, s7, zero
         jal     ra, GLIR_PrintLine
+
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        addi    sp, sp, 32
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+.text
+#-------------------------------------------------------------------------------
+# PrintRect
+# Args:     a0 = Row of top left corner
+#           a1 = Col of top left corner
+#           a2 = Signed height of the rectangle
+#           a3 = Signed width of the rectangle
+#           a4 = Color to print with
+#
+# Prints a rectangle using the (Row, Col) point as the top left corner having
+# width and height as specified. Supports negative widths and heights.
+#-------------------------------------------------------------------------------
+GLIR_PrintRect:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -32                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+
+        add     s1, a0, zero                    # s1 = Row
+        add     s2, a1, zero                    # s2 = Col
+        add     s3, a2, zero                    # s3 = Height
+        add     s4, a3, zero                    # s4 = Width
+        add     s5, a4, zero                    # s5 = Color
+
+        # Calculate the offset row and col needed for other points
+        add     s6, s1, s3                      # s6 = Row + Height
+        add     s7, s2, s4                      # s7 = Col + Width
+
+        # Connect top left point to top right point
+        # a0, a1, and a4 are all still set
+        add     a2, s1, zero
+        add     a3, s7, zero
+        # a0 = Row, a1 = Col, a2 = Row, a3 = Col + Width
+        jal     GLIR_PrintLine
+
+        # Connect top left point to bottom left point
+        add     a0, s1, zero
+        add     a1, s2, zero
+        add     a2, s6, zero
+        add     a3, s2, zero
+        add     a4, s5, zero
+        # a0 = Row, a1 = Col, a2 = Row + Height, a3 = Col
+        jal     GLIR_PrintLine
+
+        # Connect bottom left point to bottom right point
+        add     a0, s6, zero
+        add     a1, s2, zero
+        add     a2, s6, zero
+        add     a3, s7, zero
+        add     a4, s5, zero
+        # a0 = Row + Height, a1 = Col, a2 = Row + Height, a3 = Col + Width
+        jal     GLIR_PrintLine
+
+        # Connect top right point to bottom right point
+        add     a0, s1, zero
+        add     a1, s7, zero
+        add     a2, s6, zero
+        add     a3, s7, zero
+        add     a4, s5, zero
+        # a0 = Row, a1 = Col + Width, a2 = Row + Height, a3 = Col + Width
+        jal     GLIR_PrintLine
 
         # Stack Restore
         lw      ra, -4(s0)
