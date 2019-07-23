@@ -44,6 +44,8 @@
 # pseudo instructions and made use of loading syscall service numbers from
 # labels for ease of protability.
 # https://github.com/TheThirdOne/rars
+#
+# TODO: Add fill subroutines to fill the primitves.
 #-------------------------------------------------------------------------------
 
 .data
@@ -833,31 +835,27 @@ GLIR_PrintLine:
         sw      a3, -64(s0)                     # Col2 at -64(s0)
         sw      a4, -68(s0)                     # Color at -68(s0)
 
-        # Horizontal and vertical straight lines are not working... possibly b/c
-        # this algo is meant to project x,y,z onto x,y first. Never enters the
-        # innermost if to update row/col because DRow/DCol will be 0 and 
-        # therefore PCol/PRow will never not equal 0. Can simply add a
-        # check for row's being the same or columns being the same.
-
         sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
         sub     s2, a3, a1                      # DCol = s2 <- col2 - col1
         
         add     a0, s1, zero
         jal     ra, _GLIR_Abs
-        add     s3, a0, zero                    # DRow1 = s3 <- abs(DRow)
+        add     s3, a0, zero                    # DRowAbs = s3 <- abs(DRow)
         add     a0, s2, zero
         jal     ra, _GLIR_Abs
-        add     s4, a0, zero                    # DCol1 = s4 <- abs(DCol)
+        add     s4, a0, zero                    # DColAbs = s4 <- abs(DCol)
 
         addi    t0, zero, 2
-        mul     t1, t0, s4                      # t1 <- 2 * DCol1
-        # Not checking upper 32 bits of the multiplication b/c DCol1 
+        mul     t1, t0, s4                      # t1 <- 2 * DColAbs
+        # Not checking upper 32 bits of the multiplication b/c DColAbs 
         # should be a small enough number
-        sub     s5, t1, s3                      # PRow = s5 <- 2 * DCol1 - DRow1
-        mul     t1, t0, s3                      # t1 <- 2 * DRow1
-        # Not checking upper 32 bits of the multiplication b/c DRow1
+        sub     s5, t1, s3                      # PRow = s5 <- 2 * DColAbs - 
+                                                #DRowAbs
+        mul     t1, t0, s3                      # t1 <- 2 * DRowAbs
+        # Not checking upper 32 bits of the multiplication b/c DRowAbs
         # should be a small enough number
-        sub     s6, t1, s4                      # PCol = s6 <- 2 * DRow1 - DCol1
+        sub     s6, t1, s4                      # PCol = s6 <- 2 * DRowAbs -
+                                                # DColAbs
 
         # Set the color of the foreground for the text
         lw      a0, -68(s0)                     # Color
@@ -865,7 +863,7 @@ GLIR_PrintLine:
         jal     ra, GLIR_SetColor
 
         # Begin checking how we should print
-        blt     s3, s4, PrintLine_OuterElse     # If DCol1 > DRow1 goto 
+        blt     s3, s4, PrintLine_OuterElse     # If DColAbs > DRowAbs goto 
                                                 # PrintLine_OuterElse
         # Set the start and endpoints for the loop
         blt     s1, zero, PrintLine_RowPoint1Ends # If DRow < 0 goto
@@ -896,12 +894,14 @@ GLIR_PrintLine:
                                                         # PrintLine_CheckCol
                 li      t0, 2
                 mul     t1, s4, t0
-                add     s5, s5, t1                      # PRow = PRow + 2 * DCol1
-                jal     zero, PrintLine_RowLoop
+                add     s5, s5, t1                      # PRow = PRow + 2 * 
+                                                        # DColAbs
+                jal     zero, PrintLine_RowDraw
 
                 PrintLine_CheckCol:
-                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; else y--;
-                bge     s1, zero, PrintLine_RowOr       # If DRow >= 0 goto ...
+                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; 
+                # else y--;
+                bge     s1, zero, PrintLine_RowOr       # If DRow >= 0 goto...
                 blt     s2, zero, PrintLine_IncCol      # If DCol < 0 goto...
 
                 PrintLine_RowOr:
@@ -919,10 +919,13 @@ GLIR_PrintLine:
                 sub     t1, s4, s3
                 mul     t1, t1, t0
                 # Not checking upper 32 bits of the multiplication b/c
-                # (DCol1 - DRow1) should be a small enough number
+                # (DColAbs - DRowAbs) should be a small enough number
                 add     s5, s5, t1                      # PRow = PRow + 2 * 
-                                                        # (DCol1 - DRow1)
+                                                        # (DColAbs - DRowAbs)
+
+                PrintLine_RowDraw:
                 # Draw a point
+                # GLIR_PrintString checks terminal boundaries so we dont need to
                 la      a0, PrintLine_Char
                 add     a1, s7, zero
                 add     a2, s8, zero
@@ -960,12 +963,15 @@ GLIR_PrintLine:
                                                         # PrintLine_CheckRow
                 li      t0, 2
                 mul     t1, s3, t0
-                add     s6, s6, t1                      # PCol = PCol + 2 * DRow1
-                jal     zero, PrintLine_ColLoop
+                add     s6, s6, t1                      # PCol = PCol + 2 * 
+                                                        # DRowAbs
+                jal     zero, PrintLine_ColDraw
+                
 
                 PrintLine_CheckRow:
-                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; else y--;
-                bge     s1, zero, PrintLine_ColOr       # If DRow >= 0 goto ...
+                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; 
+                # else y--;
+                bge     s1, zero, PrintLine_ColOr       # If DRow >= 0 goto...
                 blt     s2, zero, PrintLine_IncRow      # If DCol < 0 goto...
 
                 PrintLine_ColOr:
@@ -983,10 +989,13 @@ GLIR_PrintLine:
                 sub     t1, s3, s4
                 mul     t1, t1, t0
                 # Not checking upper 32 bits of the multiplication b/c
-                # (DRow1 - DCol1) should be a small enough number
+                # (DRowAbs - DColAbs) should be a small enough number
                 add     s6, s6, t1                      # PCol = PCol + 2 * 
-                                                        # (DRow1 - DCol1)
+                                                        # (DRowAbs - DColAbs)
+
+                PrintLine_ColDraw:
                 # Draw a point
+                # GLIR_PrintString checks terminal boundaries so we dont need to
                 la      a0, PrintLine_Char
                 add     a1, s7, zero
                 add     a2, s8, zero
