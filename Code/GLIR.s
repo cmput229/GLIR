@@ -274,7 +274,7 @@ GLIR_PrintString:
 # The payload of each job in the list is the address of a string.
 # Escape sequences for prettier or bolded printing supported by your terminal
 # can be included in the strings. However, including such escape sequences can
-# effect not just this print, but also future prints for other GLIR methods.
+# effect not just this print, but also future prints for other GLIR subroutines.
 #-------------------------------------------------------------------------------
 GLIR_BatchPrint:
         # Stack Adjustments
@@ -290,12 +290,13 @@ GLIR_BatchPrint:
         sw      s7, -24(s0)
         sw      s8, -28(s0)
 
+        addi    s1, a0, 0                       # Scanner = start of batch
+
+        jal     ra, GLIR_RestoreSettings
         # Store the last known colors, to avoid un-needed printing
         li      s7, -1                          # LastFg = -1
         li      s8, -1                          # LastBg = -1
-
-
-        addi    s1, a0, 0                       # Scanner = start of batch
+        
         # For item in list
         BatchPrint_Scan:
                 # Extract row and col to vars
@@ -1107,7 +1108,9 @@ GLIR_PrintTriangle:
 #           a4 = Color to print with
 #
 # Prints a rectangle using the (Row, Col) point as the top left corner having
-# width and height as specified. Supports negative widths and heights.
+# width and height as specified. Supports negative widths and heights. 
+# Specifying a height and width of 0 will print a rectangle one cell high by
+# one cell wide. 
 #-------------------------------------------------------------------------------
 GLIR_PrintRect:
         # Stack Adjustments
