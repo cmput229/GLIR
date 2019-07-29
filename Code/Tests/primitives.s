@@ -15,7 +15,7 @@ main:
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -32                     # Adjust stack to save variables
+        addi    sp, sp, -48                     # Adjust stack to save variables
         sw      ra, -4(s0)                      # Save ra
         sw      s1, -8(s0)
         sw      s2, -12(s0)
@@ -24,6 +24,10 @@ main:
         sw      s5, -24(s0)
         sw      s6, -28(s0)
         sw      s7, -32(s0)
+        sw      s8, -36(s0)
+        sw      s9, -40(s0)
+        sw      s10, -44(s0)
+        sw      s11, -48(s0)
 
         # Pass the size of terminal
         addi    s1, zero, 50                    # ScreenRows
@@ -426,7 +430,7 @@ main:
         addi    s5, zero, 49                    # Col1
         addi    s6, zero, 35                    # Row2
         
-        fillLoop:
+        FillLoop:
         # Wait 0.1 seconds
         la      a7, _SLEEP
         lw      a7, 0(a7)
@@ -435,9 +439,9 @@ main:
         # If Col1 <= 89 || Row2 >= 0
         addi     t0, s2, -1                     # Last column is ScreenColumns
                                                 # - 1
-        bge     t0, s5, fill
-        blt     s6, zero, doneFill
-        fill:
+        bge     t0, s5, Fill
+        blt     s6, zero, DoneFill
+        Fill:
         addi    a0, zero, 0                     # Row1
         add     a1, s5, zero                    # Col1
         add     a2, s6, zero                    # Row2
@@ -446,110 +450,47 @@ main:
         jal     GLIR_PrintLine
         addi    s5, s5, 2                       # Col1 = Col1 + 2
         addi    s6, s6, -2                      # Row2 = Row2 + -2
-        jal     zero, fillLoop
+        jal     zero, FillLoop
 
-        doneFill:
+        DoneFill:
         ## Layering shapes into a design
-        # Draw a rectangle in remaining space up to the edges of the screen
-        addi    a0, zero, 37                    # Row
-        addi    a1, zero, 0                     # Col
-        addi    t0, s1, -37                     # Number of spaces from current
-                                                # row to last row
-        addi    a2, t0, -1                      # Height = ScreenRows - 1
-        addi    a3, s2, -1                      # Width = ScreenCols - 1
-        add     a4, zero, s3                    # Color
+        addi    s7, zero, 196                   # Colors ; to distinguish prints
+        addi    s8, zero, 1                     # Offset
+        addi    s9, zero, 37                    # Row
+        addi    s10, zero, 0                    # Col
+        sub     s11, s1, s9                     # NearestRow = ScreenRows - Row
+
+        RectLoop:
+        addi    t0, zero, 7                     # (ScreenRows - Row + 1) / 2 = 7
+        # Boxes will fill in after 7 iterations for the given terminal size
+        # Col increments by 1 starting at 0... use that as the loop iterator
+        bge     s10, t0, DoneRects
+               
+        # Wait 0.5 seconds
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 500
+        ecall
+
+        # Draw a rectangle up to edge of screen or last rectangle
+        add     a0, s9, zero                    # Row
+        add     a1, s10, zero                   # Col
+        sub     a2, s11, s8                     # Height = NearestRow - offset
+        sub     a3, s2, s8                      # Width = ScreenCols - offset
+        add     a4, zero, s7                    # Color
         jal     GLIR_PrintRect
 
-        # Load some colors to use to distinguish different prints
-        addi    s7, zero, 2                     # s7 = Green
+        addi    s7, s7, 1                       # Color++
+        addi    s8, s8, 2                       # Offset = Offset - 2
+        addi    s9, s9, 1                       # Row++
+        addi    s10, s10, 1                     # Col++
+        jal     zero, RectLoop
 
-        # 'Animate' a ball rolling down a hill
-        # Print a hill
-        addi    a0, zero, 41                    # Row1
-        addi    a1, zero, 88                    # Col1
-        addi    a2, zero, 48                    # Row2
-        addi    a3, zero, 88                    # Col2
-        addi    a4, zero, 48                    # Row3
-        addi    a5, zero, 75                    # Col3
-        add     a6, zero, s7                    # Color
-        jal     GLIR_PrintTriangle
-        # Print the ball
-        li      a0, 39                          # Row
-        li      a1, 87                          # Col
-        li      a2, 1                           # Radius
-        # Byte code; REMEMBER this is little endian so now it's [empty]
-        # [bgcolor] [fgcolor] [printing code]
-        # 0x07 is the color Silver
-        li      a3, 0x00070003
-        jal     ra, GLIR_PrintCircle
-        # Reset that position and print new position
-        # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
-        li      a0, 500
-        ecall
-        li      a0, 39                       
-        li      a1, 87                         
-        li      a2, 1                           
-        li      a3, 0x00000001
-        jal     ra, GLIR_PrintCircle
-        li      a0, 39                       
-        li      a1, 86                         
-        li      a2, 1                           
-        li      a3, 0x00070003
-        jal     ra, GLIR_PrintCircle
-        # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
-        li      a0, 500
-        ecall
-        # Continue animation
-        li      a0, 39                       
-        li      a1, 86                         
-        li      a2, 1                           
-        li      a3, 0x00000001
-        jal     ra, GLIR_PrintCircle
-        li      a0, 40                       
-        li      a1, 86                         
-        li      a2, 1                           
-        li      a3, 0x00070003
-        jal     ra, GLIR_PrintCircle
-        # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
-        li      a0, 500
-        ecall
-        li      a0, 40                       
-        li      a1, 86                         
-        li      a2, 1                           
-        li      a3, 0x00000001
-        jal     ra, GLIR_PrintCircle
-        li      a0, 40                       
-        li      a1, 85                         
-        li      a2, 1                           
-        li      a3, 0x00070003
-        jal     ra, GLIR_PrintCircle
-        # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
-        li      a0, 500
-        ecall
-        li      a0, 40                       
-        li      a1, 85                         
-        li      a2, 1                           
-        li      a3, 0x00000001
-        jal     ra, GLIR_PrintCircle
-        li      a0, 40                       
-        li      a1, 84                         
-        li      a2, 1                           
-        li      a3, 0x00070003
-        jal     ra, GLIR_PrintCircle
-
-
+        DoneRects:
         # Wait 5 seconds
         la      a7, _SLEEP
         lw      a7, 0(a7)
-        li      a0, 50000
+        li      a0, 5000
         ecall
 
         jal     ra, GLIR_End
@@ -563,7 +504,11 @@ main:
         lw      s5, -24(s0)
         lw      s6, -28(s0)
         lw      s7, -32(s0)
-        addi    sp, sp, 32
+        lw      s8, -36(s0)
+        lw      s9, -40(s0)
+        lw      s10, -44(s0)
+        lw      s11, -48(s0)
+        addi    sp, sp, 48
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
