@@ -48,9 +48,10 @@ _SLEEP:         .word 32
 
 # Chars to use to test whether specifying a string to print with works
 VerticalBar:    .asciz "|"
+.align 2
 Hash:           .asciz "#"
+.align 2
 ForwardSlash:   .asciz "/"
-
 .text
 main:
         # Stack Adjustments
