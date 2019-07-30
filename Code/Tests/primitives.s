@@ -1,5 +1,41 @@
-# Note that many shapes look much better when drawn larger. 
-# Small shapes will suffer from the restrictions of printing to a grid and thus the alignment of how characters are printed may look off.
+# Copyright 2019 Taylor Zowtuk
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+#-------------------------------------------------------------------------------
+# Author: Taylor Zowtuk
+# Date: July 2019
+#-------------------------------------------------------------------------------
+# A test for the GLIR_PrintLine, GLIR_PrintRect, and GLIR_PrintTriangle
+# primitives. Checks printing of both minimal and larger size shape prints.
+# Checks out of bounds printing. Checks stacking of shapes. Checks that
+# order that points are specififed for GLIR_PrintLine is irrelevant to the
+# end drawing.
+#
+# Note that many shapes look much better when drawn larger. Small shapes will 
+# suffer from the restrictions of printing to a terminal (terminals and fonts 
+# are not square even if they are monospace, thus a square grid renders a 
+# rectangular shape) and the alignment of how characters are printed may look 
+# off.
+#
+# Use the runPrimitives shell script to run this test.
+#-------------------------------------------------------------------------------
+ 
 .include        "../GLIR.s"
 
 .data
@@ -132,6 +168,13 @@ main:
         add     a4, zero, s4
         jal     GLIR_PrintLine
 
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+
+        ## Lines with varying delta
         # Order of execution of the GLIR_PrintLine subroutine can execute
         # differently depending on whether or not the difference between the
         # Rows or Cols of the two points is larger 
@@ -164,6 +207,7 @@ main:
         add     a4, zero, s3
         jal     GLIR_PrintLine
 
+        # Print a crossing pattern
         addi    a0, zero, 0
         addi    a1, zero, 27
         addi    a2, zero, 6
@@ -207,6 +251,12 @@ main:
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 500
+        ecall
+
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
         ecall
 
         ## Rectangles
@@ -314,6 +364,12 @@ main:
         add     a4, zero, s3
         jal     GLIR_PrintRect
 
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+
         ## Triangles
         # Print smallest triangles possible with three unique points
         addi    a0, zero, 16                    # Row1
@@ -382,6 +438,12 @@ main:
         add     a6, zero, s3                    
         jal     GLIR_PrintTriangle
 
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+
         ## Larger triangles
         addi    a0, zero, 21                   
         addi    a1, zero, 1                    
@@ -426,6 +488,12 @@ main:
         add     a6, zero, s3                    
         jal     GLIR_PrintTriangle
 
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+
         ## Fill empty space with long diagonal lines
         # 89 is 90th column
         addi    s5, zero, 49                    # Col1
@@ -454,6 +522,12 @@ main:
         jal     zero, FillLoop
 
         DoneFill:
+        # Wait 0.5 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 500
+        ecall
+
         ## Layering shapes into a design
         addi    s7, zero, 196                   # Colors ; to distinguish prints
         addi    s8, zero, 1                     # Offset
@@ -524,7 +598,7 @@ main:
         # Wait 5 seconds
         la      a7, _SLEEP
         lw      a7, 0(a7)
-        li      a0, 50000
+        li      a0, 5000
         ecall
 
         jal     ra, GLIR_End
