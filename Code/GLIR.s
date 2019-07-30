@@ -198,21 +198,18 @@ GLIR_PrintString:
         # Check if past boundaries
         la      t0, _TERM_ROWS                
         lw      t0, 0(t0)
-        slt     t0, t0, a1                      # If TERM_ROWS < print row
+        bge     a1, t0, PrintString_End         # If TERM_ROWS <= print row
 
         la      t1, _TERM_COLS
         lw      t1, 0(t1)
-        slt     t1, t1, a2                      # or if TERM_COLS < print col
+        bge     a2, t1, PrintString_End         # or if TERM_COLS <= print col
 
         slt     t2, a1, zero                    # or if print row < 0
 
         slt     t3, a2, zero                    # or if print col < 0
 
-        or      t0, t0, t1
         or      t2, t2, t3
-        or      t0, t0, t2
-        bne     t0, zero, PrintString_End       # then do nothing
-
+        bne     t2, zero, PrintString_End       # then do nothing
 
         # Else
         addi    s1, a0, 0
@@ -856,7 +853,7 @@ GLIR_PrintLine:
         # Not checking upper 32 bits of the multiplication b/c DColAbs 
         # should be a small enough number
         sub     s5, t1, s3                      # PRow = s5 <- 2 * DColAbs - 
-                                                #DRowAbs
+                                                # DRowAbs
         mul     t1, t0, s3                      # t1 <- 2 * DRowAbs
         # Not checking upper 32 bits of the multiplication b/c DRowAbs
         # should be a small enough number
