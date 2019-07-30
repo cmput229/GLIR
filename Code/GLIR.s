@@ -800,7 +800,7 @@ GLIR_ColorDemo:
 
 .data
 .align 2
-PrintLine_Char: .asciz "█"                  # Char to print with if a5 = 0
+PrintLine_Char: .asciz "█"                      # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintLine
@@ -845,13 +845,13 @@ GLIR_PrintLine:
         sw      a2, -60(s0)                     # Row2 at -60(s0)
         sw      a3, -64(s0)                     # Col2 at -64(s0)
         sw      a4, -68(s0)                     # Color at -68(s0)
-        sw      a5, -72(s0)                     # Str address at -72(s0)
+        sw      a5, -72(s0)                     # StrAddress at -72(s0)
 
         # Set address of string to use for printing
         bne     a5, zero, PrintLine_StrIsSet    # If a5 != 0 then do nothing
-        # Else set the str address to use default unicode full block char
+        # Else set the StrAddress to use default unicode full block char
         la      a5, PrintLine_Char
-        sw      a5, -72(s0)                     # Str address at -72(s0)
+        sw      a5, -72(s0)                     # StrAddress at -72(s0)
 
         PrintLine_StrIsSet:
         sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
@@ -899,7 +899,7 @@ GLIR_PrintLine:
 
         PrintLine_RowDrawFirst:
         # Draw first point
-        lw      a0, -72(s0)                     # Str address at -72(s0)
+        lw      a0, -72(s0)                     # StrAddress at -72(s0)
         add     a1, s7, zero
         add     a2, s8, zero
         jal     ra, GLIR_PrintString
@@ -945,7 +945,7 @@ GLIR_PrintLine:
                 PrintLine_RowDraw:
                 # Draw a point
                 # GLIR_PrintString checks terminal boundaries so we dont need to
-                lw      a0, -72(s0)                     # Str address at -72(s0)
+                lw      a0, -72(s0)                     # StrAddress at -72(s0)
                 add     a1, s7, zero
                 add     a2, s8, zero
                 jal     ra, GLIR_PrintString
@@ -968,7 +968,7 @@ GLIR_PrintLine:
 
         PrintLine_ColDrawFirst:
         # Draw first point
-        lw      a0, -72(s0)                     # Str address at -72(s0)
+        lw      a0, -72(s0)                     # StrAddress at -72(s0)
         add     a1, s7, zero
         add     a2, s8, zero
         jal     ra, GLIR_PrintString
@@ -1015,7 +1015,7 @@ GLIR_PrintLine:
                 PrintLine_ColDraw:
                 # Draw a point
                 # GLIR_PrintString checks terminal boundaries so we dont need to
-                lw      a0, -72(s0)                     # Str address at -72(s0)
+                lw      a0, -72(s0)                     # StrAddress at -72(s0)
                 add     a1, s7, zero
                 add     a2, s8, zero
                 jal     ra, GLIR_PrintString
@@ -1043,7 +1043,7 @@ GLIR_PrintLine:
 
 .data
 .align 2
-PrintTriangle_Char: .asciz "█"                # Char to print with if a7 = 0
+PrintTriangle_Char: .asciz "█"                  # Char to print with if a7 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintTriangle
@@ -1092,13 +1092,13 @@ GLIR_PrintTriangle:
         # Set address of string to use for printing
         add     s8, a7, zero                    # s8 = StrAddress  
         bne     a7, zero, PrintTriangle_StrIsSet    # If a7 != 0 then do nothing
-        # Else set the str address to use default unicode full block char
+        # Else set the StrAddress to use default unicode full block char
         la      s8, PrintTriangle_Char                           
 
         PrintTriangle_StrIsSet:
         # a0, a1 = (Row1, Col1) and a2, a3 = (Row2, Col2) currently
         add     a4, s7, zero                    # Color
-        add     a5, s8, zero                    # Str address
+        add     a5, s8, zero                    # StrAddress
         jal     ra, GLIR_PrintLine
 
         add     a0, s3, zero
@@ -1135,7 +1135,7 @@ GLIR_PrintTriangle:
 
 .data
 .align 2
-PrintRect_Char: .asciz "█"                  # Char to print with if a5 = 0
+PrintRect_Char: .asciz "█"                      # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintRect
@@ -1187,7 +1187,7 @@ GLIR_PrintRect:
         # Set address of string to use for printing
         add     s8, a5, zero                    # s8 = StrAddress
         bne     a5, zero, PrintRect_StrIsSet    # If a5 != 0 then do nothing
-        # Else set the str address to use default unicode full block char
+        # Else set the StrAddress to use default unicode full block char
         la      s8, PrintRect_Char                
 
         PrintRect_StrIsSet:
@@ -1331,11 +1331,11 @@ GLIR_PrintCircle:
         addi    s1, a2, 0                       # Row = Radius
         li      s2, 0                           # Col = 0
         li      s3, 0                           # Err = 0
-        
+
         # Set address of string to use for printing
         add     s4, a4, zero                    # s4 = StrAddress
         bne     a4, zero, PrintCircle_StrIsSet  # If a4 != 0 then do nothing
-        # Else set the str address to use default unicode full block char
+        # Else set the StrAddress to use default unicode full block char
         la      s4, PrintCircle_Char                
 
         PrintCircle_StrIsSet:
