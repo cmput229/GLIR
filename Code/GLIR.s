@@ -44,6 +44,8 @@
 # pseudo instructions and made use of loading syscall service numbers from
 # labels for ease of protability.
 # https://github.com/TheThirdOne/rars
+#
+# TODO: Add fill subroutines to fill the primitves.
 #-------------------------------------------------------------------------------
 
 .data
@@ -193,19 +195,21 @@ GLIR_PrintString:
         sw      ra, -4(s0)                      # Save ra
         sw      s1, -8(s0)
 
-
-        # Terminal automatically rejects negative values, not certain why, but
-        # not checking for it either
-        la      t0, _TERM_ROWS                  # Check if past boundary
+        # Check if past boundaries
+        la      t0, _TERM_ROWS                
         lw      t0, 0(t0)
-        slt     t0, t0, a1                      # If TERM_ROWS < print row
+        bge     a1, t0, PrintString_End         # If TERM_ROWS <= print row
 
         la      t1, _TERM_COLS
         lw      t1, 0(t1)
-        slt     t1, t1, a2                      # or if TERM_COLS < print col
+        bge     a2, t1, PrintString_End         # or if TERM_COLS <= print col
 
-        or      t0, t0, t1
-        bne     t0, zero, PrintString_End       # then do nothing
+        slt     t2, a1, zero                    # or if print row < 0
+
+        slt     t3, a2, zero                    # or if print col < 0
+
+        or      t2, t2, t3
+        bne     t2, zero, PrintString_End       # then do nothing
 
         # Else
         addi    s1, a0, 0
@@ -267,7 +271,7 @@ GLIR_PrintString:
 # The payload of each job in the list is the address of a string.
 # Escape sequences for prettier or bolded printing supported by your terminal
 # can be included in the strings. However, including such escape sequences can
-# effect not just this print, but also future prints for other GLIR methods.
+# effect not just this print, but also future prints for other GLIR subroutines.
 #-------------------------------------------------------------------------------
 GLIR_BatchPrint:
         # Stack Adjustments
@@ -283,12 +287,13 @@ GLIR_BatchPrint:
         sw      s7, -24(s0)
         sw      s8, -28(s0)
 
+        addi    s1, a0, 0                       # Scanner = start of batch
+
+        jal     ra, GLIR_RestoreSettings
         # Store the last known colors, to avoid un-needed printing
         li      s7, -1                          # LastFg = -1
         li      s8, -1                          # LastBg = -1
-
-
-        addi    s1, a0, 0                       # Scanner = start of batch
+        
         # For item in list
         BatchPrint_Scan:
                 # Extract row and col to vars
@@ -795,9 +800,456 @@ GLIR_ColorDemo:
 
 .data
 .align 2
+PrintLine_Char: .asciz "█"                      # Char to print with if a5 = 0
+.text
+#-------------------------------------------------------------------------------
+# PrintLine
+# Args:     a0 = Row1
+#           a1 = Col1
+#           a2 = Row2
+#           a3 = Col2
+#           a4 = Color to print with
+#           a5 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
+#
+# Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
+#
+# Algorithm from: 
+# https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h
+#-------------------------------------------------------------------------------
+GLIR_PrintLine:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -72                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+        sw      s8, -36(s0)
+        sw      s9, -40(s0)
+        sw      s10, -44(s0)
+        sw      s11, -48(s0)
+        sw      a0, -52(s0)                     # Row1 at -52(s0)
+        sw      a1, -56(s0)                     # Col1 at -56(s0)
+        sw      a2, -60(s0)                     # Row2 at -60(s0)
+        sw      a3, -64(s0)                     # Col2 at -64(s0)
+        sw      a4, -68(s0)                     # Color at -68(s0)
+        sw      a5, -72(s0)                     # StrAddress at -72(s0)
+
+        # Set address of string to use for printing
+        bne     a5, zero, PrintLine_StrIsSet    # If a5 != 0 then do nothing
+        # Else set the StrAddress to use default unicode full block char
+        la      a5, PrintLine_Char
+        sw      a5, -72(s0)                     # StrAddress at -72(s0)
+
+        PrintLine_StrIsSet:
+        sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
+        sub     s2, a3, a1                      # DCol = s2 <- col2 - col1
+        
+        add     a0, s1, zero
+        jal     ra, _GLIR_Abs
+        add     s3, a0, zero                    # DRowAbs = s3 <- abs(DRow)
+        add     a0, s2, zero
+        jal     ra, _GLIR_Abs
+        add     s4, a0, zero                    # DColAbs = s4 <- abs(DCol)
+
+        addi    t0, zero, 2
+        mul     t1, t0, s4                      # t1 <- 2 * DColAbs
+        # Not checking upper 32 bits of the multiplication b/c DColAbs 
+        # should be a small enough number
+        sub     s5, t1, s3                      # PRow = s5 <- 2 * DColAbs - 
+                                                # DRowAbs
+        mul     t1, t0, s3                      # t1 <- 2 * DRowAbs
+        # Not checking upper 32 bits of the multiplication b/c DRowAbs
+        # should be a small enough number
+        sub     s6, t1, s4                      # PCol = s6 <- 2 * DRowAbs -
+                                                # DColAbs
+
+        # Set the color of the foreground for the text
+        lw      a0, -68(s0)                     # Color
+        li      a1, 1                           # Foreground
+        jal     ra, GLIR_SetColor
+
+        # Begin checking how we should print
+        blt     s3, s4, PrintLine_OuterElse     # If DColAbs > DRowAbs goto 
+                                                # PrintLine_OuterElse
+        # Set the start and endpoints for the loop
+        blt     s1, zero, PrintLine_RowPoint1Ends # If DRow < 0 goto
+                                                # PrintLine_RowPoint1Ends
+        lw      s7, -52(s0)                     # Row = s7 <- Row1
+        lw      s8, -56(s0)                     # Col = s8 <- Col1
+        lw      s9, -60(s0)                     # RowEnd = s9 <- Row2
+        jal     zero, PrintLine_RowDrawFirst
+        
+        PrintLine_RowPoint1Ends:
+        lw      s7, -60(s0)                     # Row = s7 <- Row2
+        lw      s8, -64(s0)                     # Col = s8 <- Col2
+        lw      s9, -52(s0)                     # RowEnd = s9 <- Row1
+
+        PrintLine_RowDrawFirst:
+        # Draw first point
+        lw      a0, -72(s0)                     # StrAddress at -72(s0)
+        add     a1, s7, zero
+        add     a2, s8, zero
+        jal     ra, GLIR_PrintString
+
+        # Draw points between first point and RowEnd
+        PrintLine_RowLoop:
+                bge     s7, s9, PrintLine_End           # If Row >= RowEnd goto
+                                                        # PrintLine_End         
+                addi    s7, s7, 1                       # Row = Row + 1
+                bge     s5, zero, PrintLine_CheckCol    # If PRow >= 0 goto 
+                                                        # PrintLine_CheckCol
+                li      t0, 2
+                mul     t1, s4, t0
+                add     s5, s5, t1                      # PRow = PRow + 2 * 
+                                                        # DColAbs
+                jal     zero, PrintLine_RowDraw
+
+                PrintLine_CheckCol:
+                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; 
+                # else y--;
+                bge     s1, zero, PrintLine_RowOr       # If DRow >= 0 goto...
+                blt     s2, zero, PrintLine_IncCol      # If DCol < 0 goto...
+
+                PrintLine_RowOr:
+                bge     zero, s1, PrintLine_DecCol      # If DRow <= 0 goto...
+                bge     zero, s2, PrintLine_DecCol      # If DCol <= 0 goto...
+
+                PrintLine_IncCol:
+                addi    s8, s8, 1                       # Col = Col + 1
+                jal     zero, PrintLine_UpdatePRow
+                PrintLine_DecCol:
+                addi    s8, s8, -1                      # Col = Col - 1
+
+                PrintLine_UpdatePRow:
+                li      t0, 2
+                sub     t1, s4, s3
+                mul     t1, t1, t0
+                # Not checking upper 32 bits of the multiplication b/c
+                # (DColAbs - DRowAbs) should be a small enough number
+                add     s5, s5, t1                      # PRow = PRow + 2 * 
+                                                        # (DColAbs - DRowAbs)
+
+                PrintLine_RowDraw:
+                # Draw a point
+                # GLIR_PrintString checks terminal boundaries so we dont need to
+                lw      a0, -72(s0)                     # StrAddress at -72(s0)
+                add     a1, s7, zero
+                add     a2, s8, zero
+                jal     ra, GLIR_PrintString
+                jal     zero, PrintLine_RowLoop
+
+
+        PrintLine_OuterElse:
+        # Set the start and endpoints for the loop
+        blt     s2, zero, PrintLine_ColPoint1Ends # If DCol < 0 goto
+                                                # PrintLine_ColPoint1Ends
+        lw      s7, -52(s0)                     # Row = s7 <- Row1
+        lw      s8, -56(s0)                     # Col = s8 <- Col1
+        lw      s9, -64(s0)                     # ColEnd = s9 <- Col2
+        jal     zero, PrintLine_ColDrawFirst
+        
+        PrintLine_ColPoint1Ends:
+        lw      s7, -60(s0)                     # Row = s7 <- Row2
+        lw      s8, -64(s0)                     # Col = s8 <- Col2
+        lw      s9, -56(s0)                     # ColEnd = s9 <- Col1
+
+        PrintLine_ColDrawFirst:
+        # Draw first point
+        lw      a0, -72(s0)                     # StrAddress at -72(s0)
+        add     a1, s7, zero
+        add     a2, s8, zero
+        jal     ra, GLIR_PrintString
+
+        # Draw points between first point and ColEnd
+        PrintLine_ColLoop:
+                bge     s8, s9, PrintLine_End           # If Col >= ColEnd goto
+                                                        # PrintLine_End         
+                addi    s8, s8, 1                       # Col = Col + 1
+                blt     zero, s6, PrintLine_CheckRow    # If PCol > 0 goto 
+                                                        # PrintLine_CheckRow
+                li      t0, 2
+                mul     t1, s3, t0
+                add     s6, s6, t1                      # PCol = PCol + 2 * 
+                                                        # DRowAbs
+                jal     zero, PrintLine_ColDraw
+                
+
+                PrintLine_CheckRow:
+                # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++; 
+                # else y--;
+                bge     s1, zero, PrintLine_ColOr       # If DRow >= 0 goto...
+                blt     s2, zero, PrintLine_IncRow      # If DCol < 0 goto...
+
+                PrintLine_ColOr:
+                bge     zero, s1, PrintLine_DecRow      # If DRow <= 0 goto...
+                bge     zero, s2, PrintLine_DecRow      # If DCol <= 0 goto...
+
+                PrintLine_IncRow:
+                addi    s7, s7, 1                       # Row = Row + 1
+                jal     zero, PrintLine_UpdatePCol
+                PrintLine_DecRow:
+                addi    s7, s7, -1                      # Row = Row - 1
+
+                PrintLine_UpdatePCol:
+                li      t0, 2
+                sub     t1, s3, s4
+                mul     t1, t1, t0
+                # Not checking upper 32 bits of the multiplication b/c
+                # (DRowAbs - DColAbs) should be a small enough number
+                add     s6, s6, t1                      # PCol = PCol + 2 * 
+                                                        # (DRowAbs - DColAbs)
+
+                PrintLine_ColDraw:
+                # Draw a point
+                # GLIR_PrintString checks terminal boundaries so we dont need to
+                lw      a0, -72(s0)                     # StrAddress at -72(s0)
+                add     a1, s7, zero
+                add     a2, s8, zero
+                jal     ra, GLIR_PrintString
+                jal     zero, PrintLine_ColLoop
+
+        PrintLine_End:
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        lw      s8, -36(s0)
+        lw      s9, -40(s0)
+        lw      s10, -44(s0)
+        lw      s11, -48(s0)
+        addi    sp, sp, 72
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+.data
+.align 2
+PrintTriangle_Char: .asciz "█"                  # Char to print with if a7 = 0
+.text
+#-------------------------------------------------------------------------------
+# PrintTriangle
+# Args:     a0 = Row1
+#           a1 = Col1
+#           a2 = Row2
+#           a3 = Col2
+#           a4 = Row3
+#           a5 = Col3
+#           a6 = Color to print with
+#           a7 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
+#
+# Prints a triangle onto the screen connected by the points (Row1, Col1), 
+# (Row2, Col2), (Row3, Col3).
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
+#-------------------------------------------------------------------------------
+GLIR_PrintTriangle:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -36                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+        sw      s8, -36(s0)
+
+        add     s1, a0, zero                    # s1 = Row1
+        add     s2, a1, zero                    # s2 = Col1
+        add     s3, a2, zero                    # s3 = Row2
+        add     s4, a3, zero                    # s4 = Col2
+        add     s5, a4, zero                    # s5 = Row3
+        add     s6, a5, zero                    # s6 = Col3
+        add     s7, a6, zero                    # s7 = Color
+
+        # Set address of string to use for printing
+        add     s8, a7, zero                    # s8 = StrAddress  
+        bne     a7, zero, PrintTriangle_StrIsSet    # If a7 != 0 then do nothing
+        # Else set the StrAddress to use default unicode full block char
+        la      s8, PrintTriangle_Char                           
+
+        PrintTriangle_StrIsSet:
+        # a0, a1 = (Row1, Col1) and a2, a3 = (Row2, Col2) currently
+        add     a4, s7, zero                    # Color
+        add     a5, s8, zero                    # StrAddress
+        jal     ra, GLIR_PrintLine
+
+        add     a0, s3, zero
+        add     a1, s4, zero
+        add     a2, s5, zero
+        add     a3, s6, zero
+        add     a4, s7, zero
+        add     a5, s8, zero
+        jal     ra, GLIR_PrintLine
+
+        add     a0, s5, zero
+        add     a1, s6, zero
+        add     a2, s1, zero
+        add     a3, s2, zero
+        add     a4, s7, zero
+        add     a5, s8, zero
+        jal     ra, GLIR_PrintLine
+
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        lw      s8, -36(s0)
+        addi    sp, sp, 36
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+.data
+.align 2
+PrintRect_Char: .asciz "█"                      # Char to print with if a5 = 0
+.text
+#-------------------------------------------------------------------------------
+# PrintRect
+# Args:     a0 = Row of top left corner
+#           a1 = Col of top left corner
+#           a2 = Signed height of the rectangle
+#           a3 = Signed width of the rectangle
+#           a4 = Color to print with
+#           a5 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
+#
+#
+# Prints a rectangle using the (Row, Col) point as the top left corner having
+# width and height as specified. Supports negative widths and heights. 
+# Specifying a height and width of 0 will print a rectangle one cell high by
+# one cell wide.
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
+#-------------------------------------------------------------------------------
+GLIR_PrintRect:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -36                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+        sw      s4, -20(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
+        sw      s7, -32(s0)
+        sw      s8, -36(s0)
+
+        add     s1, a0, zero                    # s1 = Row
+        add     s2, a1, zero                    # s2 = Col
+        add     s3, a2, zero                    # s3 = Height
+        add     s4, a3, zero                    # s4 = Width
+        add     s5, a4, zero                    # s5 = Color
+
+        # Calculate the offset row and col needed for other points
+        add     s6, s1, s3                      # s6 = Row + Height
+        add     s7, s2, s4                      # s7 = Col + Width
+
+        # Set address of string to use for printing
+        add     s8, a5, zero                    # s8 = StrAddress
+        bne     a5, zero, PrintRect_StrIsSet    # If a5 != 0 then do nothing
+        # Else set the StrAddress to use default unicode full block char
+        la      s8, PrintRect_Char                
+
+        PrintRect_StrIsSet:
+        # Connect top left point to top right point
+        # a0, a1, and a4 are all still set
+        add     a2, s1, zero
+        add     a3, s7, zero
+        add     a5, s8, zero
+        # a0 = Row, a1 = Col, a2 = Row, a3 = Col + Width
+        jal     GLIR_PrintLine
+
+        # Connect top left point to bottom left point
+        add     a0, s1, zero
+        add     a1, s2, zero
+        add     a2, s6, zero
+        add     a3, s2, zero
+        add     a4, s5, zero
+        add     a5, s8, zero
+        # a0 = Row, a1 = Col, a2 = Row + Height, a3 = Col
+        jal     GLIR_PrintLine
+
+        # Connect bottom left point to bottom right point
+        add     a0, s6, zero
+        add     a1, s2, zero
+        add     a2, s6, zero
+        add     a3, s7, zero
+        add     a4, s5, zero
+        add     a5, s8, zero
+        # a0 = Row + Height, a1 = Col, a2 = Row + Height, a3 = Col + Width
+        jal     GLIR_PrintLine
+
+        # Connect top right point to bottom right point
+        add     a0, s1, zero
+        add     a1, s7, zero
+        add     a2, s6, zero
+        add     a3, s7, zero
+        add     a4, s5, zero
+        add     a5, s8, zero
+        # a0 = Row, a1 = Col + Width, a2 = Row + Height, a3 = Col + Width
+        jal     GLIR_PrintLine
+
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        lw      s4, -20(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
+        lw      s7, -32(s0)
+        lw      s8, -36(s0)
+        addi    sp, sp, 36
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+.data
+.align 2
 PrintCircle_List:   .space 98                   # 8*3*4 bytes + 2, only prints 8
                                                 # pixels at a time
-PrintCircle_Char:   .asciz " "                  # Character to print with
+PrintCircle_Char:   .asciz "█"                  # Char to print with if a4 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintCircle
@@ -807,6 +1259,8 @@ PrintCircle_Char:   .asciz " "                  # Character to print with
 #           a3 = byte code [printing code][fg color][bg color][empty]
 #           determining how to print the circle pixels, compatible with
 #           printList
+#           a4 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
 #
 # Prints a circle onto the screen using the midpoint circle algorithm and the
 # character PrintCircle_Char.
@@ -820,6 +1274,11 @@ PrintCircle_Char:   .asciz " "                  # Character to print with
 #
 # xfce4-terminal supports the 256 color lookup table assignment; see the index
 # for a list of color codes.
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
 #
 # The tuple describing a position on the grid is (R, C) and not (C, R).
 # Terminals were designed to print text top to bottom, left to right. Their
@@ -872,7 +1331,14 @@ GLIR_PrintCircle:
         addi    s1, a2, 0                       # Row = Radius
         li      s2, 0                           # Col = 0
         li      s3, 0                           # Err = 0
-        la      s4, PrintCircle_Char
+
+        # Set address of string to use for printing
+        add     s4, a4, zero                    # s4 = StrAddress
+        bne     a4, zero, PrintCircle_StrIsSet  # If a4 != 0 then do nothing
+        # Else set the StrAddress to use default unicode full block char
+        la      s4, PrintCircle_Char                
+
+        PrintCircle_StrIsSet:
         addi    s5, a0, 0                       # s5 <- RowCenter
         addi    s6, a1, 0                       # s6 <- ColCenter
         addi    s7, a3, 0                       # s7 <- PrintSettings
@@ -888,10 +1354,10 @@ GLIR_PrintCircle:
                 add     t1, s5, s1              # R <- RowCenter + Row
                 add     t2, s6, s2              # C <- ColCenter + Col
                 # Store pixel location
-                sh      t1, 0(t0)               # Print row
-                sh      t2, 2(t0)               # Print col
+                sh      t1, 0(t0)               # Store print row
+                sh      t2, 2(t0)               # Store print col
                 sw      s7, 4(t0)               # Store PrintSettings
-                sw      s4, 8(t0)               # Store pixel to print
+                sw      s4, 8(t0)               # Store string to print
                 addi    t0, t0, 12
 
                 # Draw second pixel in 4th quadrant reflection on R = C
@@ -1013,6 +1479,23 @@ GLIR_PrintCircle:
         addi    sp, sp, 36
         lw      s0, 0(sp)
         addi    sp, sp, 4
+
+        jalr    zero, ra, 0
+
+#-------------------------------------------------------------------------------
+# Abs
+# Args:     a0 = int to convert; x
+# Returns:  a0 = abs(x)
+#
+# Branch-less absolute value calculation of a 32-bit int.
+#-------------------------------------------------------------------------------
+_GLIR_Abs:
+        srai    t0, a0, 31
+        # If x is +ve t0 will equal 0, otherwise t0 will equal 0xFFFF FFFF
+        xor     a0, a0, t0
+        # Inverted each bit if t0 is 0xFFFF FFFF, otherwise left unchanged          
+        sub     a0, a0, t0
+        # Sutract -1 from inversion if x was negative, otherwise subtract 0
 
         jalr    zero, ra, 0
 

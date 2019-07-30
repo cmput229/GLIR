@@ -61,7 +61,7 @@ main:
         sw      s2, -12(s0)
         sw      s3, -16(s0)
         sw      s4, -20(s0)
-        sw      s4, -24(s0)
+        sw      s5, -24(s0)
 
         # Pass the size of terminal
         li      a0, 30                          # Number of rows
@@ -282,12 +282,14 @@ main:
         li      a2, 0
         # REMEMBER this is little endian so now it's [empty] [bgcolor] [fgcolor]
         # [printing code]
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 1
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
         la      a7, _SLEEP
@@ -298,22 +300,26 @@ main:
         li      a0, 15
         li      a1, 30
         li      a2, 0
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 1
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 2
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 3
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
         la      a7, _SLEEP
@@ -324,32 +330,38 @@ main:
         li      a0, 15
         li      a1, 30
         li      a2, 0
-        li      a3, 0x00110003
+        li      a3, 0x00001102
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 1
-        li      a3, 0x00110003
+        li      a3, 0x00001102
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 2
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 3
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 4
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 5
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
         la      a7, _SLEEP
@@ -360,42 +372,50 @@ main:
         li      a0, 15
         li      a1, 30
         li      a2, 0
-        li      a3, 0x00100003
+        li      a3, 0x00001002
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 1
-        li      a3, 0x00100003
+        li      a3, 0x00001002
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 2
-        li      a3, 0x00110003
+        li      a3, 0x00001102
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 3
-        li      a3, 0x00110003
+        li      a3, 0x00001102
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 4
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 5
-        li      a3, 0x00120003
+        li      a3, 0x00001202
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 6
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
         li      a0, 15
         li      a1, 30
         li      a2, 7
-        li      a3, 0x00130003
+        li      a3, 0x00001302
+        add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
         la      a7, _SLEEP
@@ -413,49 +433,57 @@ main:
                 li      a0, 15                  # Row to print at
                 li      a1, 30                  # Col to print at
                 add     a2, s1, s2              # Radius of circle to print
-                li      a3, 0x00100003          # PrintSettings
+                li      a3, 0x00001002          # PrintSettings
+                add     a4, zero, zero          # StrAddress; use default
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 1
-                li      a3, 0x00100003
+                li      a3, 0x00001002
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 2
-                li      a3, 0x00110003
+                li      a3, 0x00001102
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 3
-                li      a3, 0x00110003
+                li      a3, 0x00001102
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 4
-                li      a3, 0x00120003
+                li      a3, 0x00001202
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 5
-                li      a3, 0x00120003
+                li      a3, 0x00001202
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 6
-                li      a3, 0x00130003
+                li      a3, 0x00001302
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
                 li      a0, 15
                 li      a1, 30
                 add     a2, s1, s2
                 addi    a2, a2, 7
-                li      a3, 0x00130003
+                li      a3, 0x00001302
+                add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
 
                 la      a7, _SLEEP
