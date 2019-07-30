@@ -800,7 +800,7 @@ GLIR_ColorDemo:
 
 .data
 .align 2
-PrintLine_Char:   .asciz "█"                  # Char to print with if a5 = 0
+PrintLine_Char: .asciz "█"                  # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintLine
@@ -809,8 +809,8 @@ PrintLine_Char:   .asciz "█"                  # Char to print with if a5 = 0
 #           a2 = Row2
 #           a3 = Col2
 #           a4 = Color to print with
-#           a5 = Address of string to print with; if 0 then uses the unicode 
-#                full block char (█) as default;
+#           a5 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
 #
 # Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).
 #
@@ -1043,7 +1043,7 @@ GLIR_PrintLine:
 
 .data
 .align 2
-PrintTriangle_Char:   .asciz "█"                # Char to print with if a7 = 0
+PrintTriangle_Char: .asciz "█"                # Char to print with if a7 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintTriangle
@@ -1054,8 +1054,8 @@ PrintTriangle_Char:   .asciz "█"                # Char to print with if a7 = 0
 #           a4 = Row3
 #           a5 = Col3
 #           a6 = Color to print with
-#           a7 = Address of string to print with; if 0 then uses the unicode 
-#                full block char (█) as default;
+#           a7 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
 #
 # Prints a triangle onto the screen connected by the points (Row1, Col1), 
 # (Row2, Col2), (Row3, Col3).
@@ -1135,7 +1135,7 @@ GLIR_PrintTriangle:
 
 .data
 .align 2
-PrintRect_Char:   .asciz "█"                  # Char to print with if a5 = 0
+PrintRect_Char: .asciz "█"                  # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintRect
@@ -1144,8 +1144,8 @@ PrintRect_Char:   .asciz "█"                  # Char to print with if a5 = 0
 #           a2 = Signed height of the rectangle
 #           a3 = Signed width of the rectangle
 #           a4 = Color to print with
-#           a5 = Address of string to print with; if 0 then uses the unicode 
-#                full block char (█) as default;
+#           a5 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
 #
 #
 # Prints a rectangle using the (Row, Col) point as the top left corner having
@@ -1249,7 +1249,7 @@ GLIR_PrintRect:
 .align 2
 PrintCircle_List:   .space 98                   # 8*3*4 bytes + 2, only prints 8
                                                 # pixels at a time
-PrintCircle_Char:   .asciz " "                  # Character to print with
+PrintCircle_Char:   .asciz "█"                  # Char to print with if a4 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintCircle
@@ -1259,6 +1259,8 @@ PrintCircle_Char:   .asciz " "                  # Character to print with
 #           a3 = byte code [printing code][fg color][bg color][empty]
 #           determining how to print the circle pixels, compatible with
 #           printList
+#           a4 = Address of null-terminated string to print with; if 0 then uses
+#                the unicode full block char (█) as default
 #
 # Prints a circle onto the screen using the midpoint circle algorithm and the
 # character PrintCircle_Char.
@@ -1272,6 +1274,11 @@ PrintCircle_Char:   .asciz " "                  # Character to print with
 #
 # xfce4-terminal supports the 256 color lookup table assignment; see the index
 # for a list of color codes.
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
 #
 # The tuple describing a position on the grid is (R, C) and not (C, R).
 # Terminals were designed to print text top to bottom, left to right. Their
@@ -1324,7 +1331,14 @@ GLIR_PrintCircle:
         addi    s1, a2, 0                       # Row = Radius
         li      s2, 0                           # Col = 0
         li      s3, 0                           # Err = 0
-        la      s4, PrintCircle_Char
+        
+        # Set address of string to use for printing
+        add     s4, a4, zero                    # s4 = StrAddress
+        bne     a4, zero, PrintCircle_StrIsSet  # If a4 != 0 then do nothing
+        # Else set the str address to use default unicode full block char
+        la      s4, PrintCircle_Char                
+
+        PrintCircle_StrIsSet:
         addi    s5, a0, 0                       # s5 <- RowCenter
         addi    s6, a1, 0                       # s6 <- ColCenter
         addi    s7, a3, 0                       # s7 <- PrintSettings
@@ -1340,10 +1354,10 @@ GLIR_PrintCircle:
                 add     t1, s5, s1              # R <- RowCenter + Row
                 add     t2, s6, s2              # C <- ColCenter + Col
                 # Store pixel location
-                sh      t1, 0(t0)               # Print row
-                sh      t2, 2(t0)               # Print col
+                sh      t1, 0(t0)               # Store print row
+                sh      t2, 2(t0)               # Store print col
                 sw      s7, 4(t0)               # Store PrintSettings
-                sw      s4, 8(t0)               # Store pixel to print
+                sw      s4, 8(t0)               # Store string to print
                 addi    t0, t0, 12
 
                 # Draw second pixel in 4th quadrant reflection on R = C
