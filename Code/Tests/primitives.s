@@ -40,8 +40,9 @@ main:
         addi    s3, zero, 6                     # s3 = Teal
         addi    s4, zero, 5                     # s4 = Purple
 
-        # Check if the primitives handle point being out of bounds in the 
-        # negative direction correctly; ie. they dont print anything
+        ## Negative bounds check
+        # Check if the primitives correctly handle points being out of bounds in
+        # the negative directions; ie. they dont print anything
         # Print a square in the top left corner s.t. it extends off the terminal
         # in the negative of both axes
         addi    a0, zero, -1                    # Row
@@ -487,10 +488,43 @@ main:
         jal     zero, RectLoop
 
         DoneRects:
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+        ## Positive bounds check
+        # Check if the primitives correctly handle points being out of bounds in
+        # the positive directions; ie. they dont print anything
+        # Print a square in the bottom right corner s.t. it extends off the
+        # terminal in the positive of both axes
+        addi    a0, zero, 48                    # Row
+        addi    a1, zero, 88                    # Col
+        addi    a2, zero, 2                     # Height
+        addi    a3, zero, 2                     # Width
+        add     a4, zero, s3                    # Color
+        jal     GLIR_PrintRect
+
+        # Wait 1 second 
+        la      a7, _SLEEP
+        lw      a7, 0(a7)
+        li      a0, 1000
+        ecall
+
+        # Print a triangle similar to above with one point on screen and two
+        # points out of bounds
+        addi    a0, zero, 47                    # Row1
+        addi    a1, zero, 87                    # Col1
+        addi    a2, zero, 47                    # Row2
+        addi    a3, zero, 91                    # Col2
+        addi    a4, zero, 51                    # Row3
+        addi    a5, zero, 91                    # Col3
+        add     a6, zero, s4                    # Color
+        jal     GLIR_PrintTriangle
+
         # Wait 5 seconds
         la      a7, _SLEEP
         lw      a7, 0(a7)
-        li      a0, 5000
+        li      a0, 50000
         ecall
 
         jal     ra, GLIR_End
