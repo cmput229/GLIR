@@ -43,7 +43,9 @@ _SLEEP:         .word 32
 # Three 'char' variables because each unqiue character we want to print needs to
 # pass an address containing the string to print for the GLIR_BatchPrint job.
 Char1:          .asciz " "
+.align 2
 Char2:          .asciz " "
+.align 2
 Char3:          .asciz " "
 .align 2
 # Three jobs and a null terminator 3 * 12 + 2
