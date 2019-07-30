@@ -800,7 +800,7 @@ GLIR_ColorDemo:
 
 .data
 .align 2
-PrintLine_Char:   .asciz "█"                  # Character to print with
+PrintLine_Char:   .asciz "█"                  # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintLine
@@ -809,8 +809,16 @@ PrintLine_Char:   .asciz "█"                  # Character to print with
 #           a2 = Row2
 #           a3 = Col2
 #           a4 = Color to print with
+#           a5 = Address of string to print with; if 0 then uses the unicode 
+#                full block char (█) as default;
 #
 # Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
+#
 # Algorithm from: 
 # https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h
 #-------------------------------------------------------------------------------
@@ -819,7 +827,7 @@ GLIR_PrintLine:
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -68                     # Adjust stack to save variables
+        addi    sp, sp, -72                     # Adjust stack to save variables
         sw      ra, -4(s0)
         sw      s1, -8(s0)
         sw      s2, -12(s0)
@@ -837,7 +845,15 @@ GLIR_PrintLine:
         sw      a2, -60(s0)                     # Row2 at -60(s0)
         sw      a3, -64(s0)                     # Col2 at -64(s0)
         sw      a4, -68(s0)                     # Color at -68(s0)
+        sw      a5, -72(s0)                     # Str address at -72(s0)
 
+        # Set address of string to use for printing
+        bne     a5, zero, PrintLine_StrIsSet    # If a5 != 0 then do nothing
+        # Else set the str address to use default unicode full block char
+        la      a5, PrintLine_Char
+        sw      a5, -72(s0)                     # Str address at -72(s0)
+
+        PrintLine_StrIsSet:
         sub     s1, a2, a0                      # DRow = s1 <- row2 - row1
         sub     s2, a3, a1                      # DCol = s2 <- col2 - col1
         
@@ -883,7 +899,7 @@ GLIR_PrintLine:
 
         PrintLine_RowDrawFirst:
         # Draw first point
-        la      a0, PrintLine_Char
+        lw      a0, -72(s0)                     # Str address at -72(s0)
         add     a1, s7, zero
         add     a2, s8, zero
         jal     ra, GLIR_PrintString
@@ -929,7 +945,7 @@ GLIR_PrintLine:
                 PrintLine_RowDraw:
                 # Draw a point
                 # GLIR_PrintString checks terminal boundaries so we dont need to
-                la      a0, PrintLine_Char
+                lw      a0, -72(s0)                     # Str address at -72(s0)
                 add     a1, s7, zero
                 add     a2, s8, zero
                 jal     ra, GLIR_PrintString
@@ -952,7 +968,7 @@ GLIR_PrintLine:
 
         PrintLine_ColDrawFirst:
         # Draw first point
-        la      a0, PrintLine_Char
+        lw      a0, -72(s0)                     # Str address at -72(s0)
         add     a1, s7, zero
         add     a2, s8, zero
         jal     ra, GLIR_PrintString
@@ -999,7 +1015,7 @@ GLIR_PrintLine:
                 PrintLine_ColDraw:
                 # Draw a point
                 # GLIR_PrintString checks terminal boundaries so we dont need to
-                la      a0, PrintLine_Char
+                lw      a0, -72(s0)                     # Str address at -72(s0)
                 add     a1, s7, zero
                 add     a2, s8, zero
                 jal     ra, GLIR_PrintString
@@ -1019,12 +1035,15 @@ GLIR_PrintLine:
         lw      s9, -40(s0)
         lw      s10, -44(s0)
         lw      s11, -48(s0)
-        addi    sp, sp, 68
+        addi    sp, sp, 72
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
         jalr    zero, ra, 0
 
+.data
+.align 2
+PrintTriangle_Char:   .asciz "█"                # Char to print with if a7 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintTriangle
@@ -1035,16 +1054,23 @@ GLIR_PrintLine:
 #           a4 = Row3
 #           a5 = Col3
 #           a6 = Color to print with
+#           a7 = Address of string to print with; if 0 then uses the unicode 
+#                full block char (█) as default;
 #
 # Prints a triangle onto the screen connected by the points (Row1, Col1), 
 # (Row2, Col2), (Row3, Col3).
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
 #-------------------------------------------------------------------------------
 GLIR_PrintTriangle:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -32                     # Adjust stack to save variables
+        addi    sp, sp, -36                     # Adjust stack to save variables
         sw      ra, -4(s0)
         sw      s1, -8(s0)
         sw      s2, -12(s0)
@@ -1053,6 +1079,7 @@ GLIR_PrintTriangle:
         sw      s5, -24(s0)
         sw      s6, -28(s0)
         sw      s7, -32(s0)
+        sw      s8, -36(s0)
 
         add     s1, a0, zero                    # s1 = Row1
         add     s2, a1, zero                    # s2 = Col1
@@ -1062,8 +1089,16 @@ GLIR_PrintTriangle:
         add     s6, a5, zero                    # s6 = Col3
         add     s7, a6, zero                    # s7 = Color
 
+        # Set address of string to use for printing
+        add     s8, a7, zero                    # s8 = StrAddress  
+        bne     a7, zero, PrintTriangle_StrIsSet    # If a7 != 0 then do nothing
+        # Else set the str address to use default unicode full block char
+        la      s8, PrintTriangle_Char                           
+
+        PrintTriangle_StrIsSet:
         # a0, a1 = (Row1, Col1) and a2, a3 = (Row2, Col2) currently
-        add     a4, s7, zero
+        add     a4, s7, zero                    # Color
+        add     a5, s8, zero                    # Str address
         jal     ra, GLIR_PrintLine
 
         add     a0, s3, zero
@@ -1071,6 +1106,7 @@ GLIR_PrintTriangle:
         add     a2, s5, zero
         add     a3, s6, zero
         add     a4, s7, zero
+        add     a5, s8, zero
         jal     ra, GLIR_PrintLine
 
         add     a0, s5, zero
@@ -1078,6 +1114,7 @@ GLIR_PrintTriangle:
         add     a2, s1, zero
         add     a3, s2, zero
         add     a4, s7, zero
+        add     a5, s8, zero
         jal     ra, GLIR_PrintLine
 
         # Stack Restore
@@ -1089,12 +1126,16 @@ GLIR_PrintTriangle:
         lw      s5, -24(s0)
         lw      s6, -28(s0)
         lw      s7, -32(s0)
-        addi    sp, sp, 32
+        lw      s8, -36(s0)
+        addi    sp, sp, 36
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
         jalr    zero, ra, 0
 
+.data
+.align 2
+PrintRect_Char:   .asciz "█"                  # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
 # PrintRect
@@ -1103,18 +1144,26 @@ GLIR_PrintTriangle:
 #           a2 = Signed height of the rectangle
 #           a3 = Signed width of the rectangle
 #           a4 = Color to print with
+#           a5 = Address of string to print with; if 0 then uses the unicode 
+#                full block char (█) as default;
+#
 #
 # Prints a rectangle using the (Row, Col) point as the top left corner having
 # width and height as specified. Supports negative widths and heights. 
 # Specifying a height and width of 0 will print a rectangle one cell high by
-# one cell wide. 
+# one cell wide.
+#
+# The reason that it is a string that is printed is to support the printing of
+# escape character sequences around the character so that fancy effects are
+# supported. Printing more than one character when not using escape sequences
+# will have undefined behaviour.
 #-------------------------------------------------------------------------------
 GLIR_PrintRect:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -32                     # Adjust stack to save variables
+        addi    sp, sp, -36                     # Adjust stack to save variables
         sw      ra, -4(s0)
         sw      s1, -8(s0)
         sw      s2, -12(s0)
@@ -1123,6 +1172,7 @@ GLIR_PrintRect:
         sw      s5, -24(s0)
         sw      s6, -28(s0)
         sw      s7, -32(s0)
+        sw      s8, -36(s0)
 
         add     s1, a0, zero                    # s1 = Row
         add     s2, a1, zero                    # s2 = Col
@@ -1134,10 +1184,18 @@ GLIR_PrintRect:
         add     s6, s1, s3                      # s6 = Row + Height
         add     s7, s2, s4                      # s7 = Col + Width
 
+        # Set address of string to use for printing
+        add     s8, a5, zero                    # s8 = StrAddress
+        bne     a5, zero, PrintRect_StrIsSet    # If a5 != 0 then do nothing
+        # Else set the str address to use default unicode full block char
+        la      s8, PrintRect_Char                
+
+        PrintRect_StrIsSet:
         # Connect top left point to top right point
         # a0, a1, and a4 are all still set
         add     a2, s1, zero
         add     a3, s7, zero
+        add     a5, s8, zero
         # a0 = Row, a1 = Col, a2 = Row, a3 = Col + Width
         jal     GLIR_PrintLine
 
@@ -1147,6 +1205,7 @@ GLIR_PrintRect:
         add     a2, s6, zero
         add     a3, s2, zero
         add     a4, s5, zero
+        add     a5, s8, zero
         # a0 = Row, a1 = Col, a2 = Row + Height, a3 = Col
         jal     GLIR_PrintLine
 
@@ -1156,6 +1215,7 @@ GLIR_PrintRect:
         add     a2, s6, zero
         add     a3, s7, zero
         add     a4, s5, zero
+        add     a5, s8, zero
         # a0 = Row + Height, a1 = Col, a2 = Row + Height, a3 = Col + Width
         jal     GLIR_PrintLine
 
@@ -1165,6 +1225,7 @@ GLIR_PrintRect:
         add     a2, s6, zero
         add     a3, s7, zero
         add     a4, s5, zero
+        add     a5, s8, zero
         # a0 = Row, a1 = Col + Width, a2 = Row + Height, a3 = Col + Width
         jal     GLIR_PrintLine
 
@@ -1177,7 +1238,8 @@ GLIR_PrintRect:
         lw      s5, -24(s0)
         lw      s6, -28(s0)
         lw      s7, -32(s0)
-        addi    sp, sp, 32
+        lw      s8, -36(s0)
+        addi    sp, sp, 36
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
