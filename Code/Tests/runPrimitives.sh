@@ -1,6 +1,6 @@
-# runDefaultPrint.sh
+# runPrimitves.sh
 # Author:   Taylor Zowtuk
-# Date:     June 21, 2019
+# Date:     July 28, 2019
 #
 # Useage:   ./runPrimitives.sh
 #
