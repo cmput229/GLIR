@@ -2,7 +2,7 @@
 # Author:   Taylor Zowtuk
 # Date:     June 20, 2019
 #
-# Useage:   ./runColorDemo.sh
+# Useage:   ./runColorDemo.sh path/to/rars.jar
 #
 # Runs the colorDemo.s file by passing to RARS for assembly and simulation.
 #
@@ -13,4 +13,4 @@
 # me:   display RARS messages to standard err instead of standard out. Allows
 #       you to separate RARS messages from program output using redirection.
 
-rars sm nc me colorDemo.s
+java -jar $1 sm nc me colorDemo.s
