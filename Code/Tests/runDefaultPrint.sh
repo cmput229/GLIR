@@ -5,7 +5,7 @@
 # Useage:   ./runDefaultPrint.sh path/to/rars.jar
 #
 # Runs the defaultPrint.s file by passing to RARS for assembly and simulation.
-# Expects that rars jar is located in the Tests/ directory.
+# Requires that the path to a RARS installation be provided.
 #
 # The commands used are the following:
 # sm:   start execution at statement having global label 'main' if defined.

@@ -5,6 +5,7 @@
 # Useage:   ./runRestoreClear.sh path/to/rars.jar
 #
 # Runs the restoreClear.s file by passing to RARS for assembly and simulation.
+# Requires that the path to a RARS installation be provided.
 #
 # The commands used are the following:
 # sm:   start execution at statement having global label 'main' if defined.
