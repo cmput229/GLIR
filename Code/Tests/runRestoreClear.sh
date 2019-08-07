@@ -2,9 +2,10 @@
 # Author:   Taylor Zowtuk
 # Date:     June 21, 2019
 #
-# Useage:   ./runRestoreClear.sh
+# Useage:   ./runRestoreClear.sh path/to/rars.jar
 #
 # Runs the restoreClear.s file by passing to RARS for assembly and simulation.
+# Requires that the path to a RARS installation be provided.
 #
 # The commands used are the following:
 # sm:   start execution at statement having global label 'main' if defined.
@@ -13,4 +14,4 @@
 # me:   display RARS messages to standard err instead of standard out. Allows
 #       you to separate RARS messages from program output using redirection.
 
-rars sm nc me restoreClear.s
+java -jar $1 sm nc me restoreClear.s
