@@ -2,7 +2,7 @@
 #-------------------------------------------------------------------------------
 #                                  START OF GLIR
 #-------------------------------------------------------------------------------
-# Copyright 2017 Austin Crapo
+# Copyright 2017 University of Alberta
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,9 +31,11 @@
 # This is a graphics library, supporting drawing pixels, and some basic
 # primitives.
 #
-# High Level documentation is provided in the index.html file.
-# Per-method documentation is provided in the block comment following each
-# function definition.
+# High Level documentation is provided in the ../index.html file or at 
+# https://cmput229.github.io/GLIR/
+# Per-method documentation is provided in the block comment preceding each
+# subroutine definition, in the ../docs/reference.html, or at 
+# https://cmput229.github.io/GLIR/reference.html
 #
 # Does not support being run in a terminal tab; requires a separate window.
 #
@@ -69,8 +71,9 @@ _TERM_COLS:     .word -1
 ClearScreen_String: .byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
 .text
 jal             zero, main                      # Don't enter lib unless asked
+
 #-------------------------------------------------------------------------------
-# ClearScreen
+# GLIR_ClearScreen
 #
 # Uses xfce4-terminal escape sequence to clear the screen.
 #-------------------------------------------------------------------------------
@@ -88,7 +91,7 @@ SetCursor_String:   .byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30,
                     0x30, 0x30, 0x48, 0x00
 .text
 #-------------------------------------------------------------------------------
-# SetCursor
+# _GLIR_SetCursor
 # Args:     a0 = row number to move to
 #           a1 = col number to move to
 #
@@ -161,7 +164,7 @@ _GLIR_SetCursor:
         jalr    zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# PrintString
+# GLIR_PrintString
 # Args:     a0 = address of string to print
 #           a1 = integer value 0-999, row to print to
 #           a2 = integer value 0-999, col to print to
@@ -175,12 +178,12 @@ _GLIR_SetCursor:
 # continue printing. If you have hit the bottom of the terminal window, the
 # xfce4-terminal window default behavior is to scroll the window down. This can
 # offset your screen without you knowing and is dangerous since it is
-# undetectable. The most likely useage of this function is to print characters.
-# The reason that it is a string that is printed is to support the printing of
-# escape character sequences around the character so that fancy effects are
-# supported. Some other terminals may treat the boundaries of the terminal
-# window different. For example, some may not wrap or scroll. It is up to the
-# user to test their terminal window for its default behaviour. Built for
+# undetectable. The most likely useage of this subroutine is to print 
+# characters. The reason that it is a string that is printed is to support the
+# printing of escape character sequences around the character so that fancy 
+# effects are supported. Some other terminals may treat the boundaries of the
+# terminal window different. For example, some may not wrap or scroll. It is up
+# to the user to test their terminal window for its default behaviour. Built for
 # xfce4-terminal. Position (0, 0) is defined as the top left of the terminal.
 #
 # Uses TERM_ROW and TERM_COL to determine if the target tile is outside of the
@@ -234,7 +237,7 @@ GLIR_PrintString:
         jalr    zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# BatchPrint
+# GLIR_BatchPrint
 # Args:     a0 = address of batch list to print
 # Reg. Use: s1 = scanner for the list
 #           s2 = store row info
@@ -244,7 +247,7 @@ GLIR_PrintString:
 #           s8 = temporary color info storage accross calls
 #
 # A batch is a list of print jobs. The print jobs are in the format below, and
-# will be printed from start to finish. This function does some basic
+# will be printed from start to finish. This subroutine does some basic
 # optimization of color printing (eg. color changing codes are not printed if
 # they do not need to be), but if the list constantly changes color and is not
 # sorted by color, you may notice flickering.
@@ -389,7 +392,7 @@ GLIR_BatchPrint:
 IntToChar_Space:    .space 4
 .text
 #-------------------------------------------------------------------------------
-# IntToChar
+# _GLIR_IntToChar
 # Args:     a0 = integer to convert
 # Returns:  a0 = address of the bytes, in the following order, 1's, 10's, 100's,
 #                1000's
@@ -463,7 +466,7 @@ SetColor_String:    .byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30,
                     0x30, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
-# SetColor
+# GLIR_SetColor
 # Args:     a0 = color code (see index)
 #           a1 = 0 if setting background, 1 if setting foreground
 #
@@ -533,7 +536,7 @@ GLIR_SetColor:
 RestoreSettings_String: .byte 0x1b, 0x5b, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
-# RestoreSettings
+# GLIR_RestoreSettings
 #
 # Prints the escape sequence that restores all default color settings to the
 # terminal.
@@ -547,7 +550,7 @@ GLIR_RestoreSettings:
         jalr    zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# Start
+# GLIR_Start
 # Args:     a0 = number of rows to set the screen to
 #           a1 = number of cols to set the screen to
 #
@@ -578,7 +581,7 @@ GLIR_Start:
         jalr    zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# End
+# GLIR_End
 #
 # Reverts to default as many settings as it can, meant to end a program that was
 # started with Start. The default terminal window in xfce4-terminal is
@@ -617,7 +620,7 @@ GLIR_End:
 HideCursor_String:  .byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x6c, 0x00
 .text
 #-------------------------------------------------------------------------------
-# HideCursor
+# _GLIR_HideCursor
 #
 # Prints the escape sequence that hides the cursor.
 #-------------------------------------------------------------------------------
@@ -634,7 +637,7 @@ _GLIR_HideCursor:
 ShowCursor_String:  .byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x68, 0x00
 .text
 #-------------------------------------------------------------------------------
-# ShowCursor
+# _GLIR_ShowCursor
 #
 # Prints the escape sequence that restores the cursor visibility.
 #-------------------------------------------------------------------------------
@@ -652,7 +655,7 @@ SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30,
                         0x3b, 0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
 #-------------------------------------------------------------------------------
-# SetDisplaySize
+# _GLIR_SetDisplaySize
 # Args:     a0 = number of rows
 #           a1 = number of columns
 #
@@ -738,7 +741,7 @@ _GLIR_SetDisplaySize:
 ColorDemo_Char: .asciz "█"
 .text
 #-------------------------------------------------------------------------------
-# ColorDemo
+# GLIR_ColorDemo
 # Reg. Use: s1 = Holds the initial offset - we start at color 16 because the
 #           first 16 (0-15) don't align very well in this demo. Change it to 0
 #           (and adjust minimum terminal size) if you want the FULL color gamut.
@@ -803,7 +806,7 @@ GLIR_ColorDemo:
 PrintLine_Char: .asciz "█"                      # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
-# PrintLine
+# GLIR_PrintLine
 # Args:     a0 = Row1
 #           a1 = Col1
 #           a2 = Row2
@@ -1046,7 +1049,7 @@ GLIR_PrintLine:
 PrintTriangle_Char: .asciz "█"                  # Char to print with if a7 = 0
 .text
 #-------------------------------------------------------------------------------
-# PrintTriangle
+# GLIR_PrintTriangle
 # Args:     a0 = Row1
 #           a1 = Col1
 #           a2 = Row2
@@ -1138,7 +1141,7 @@ GLIR_PrintTriangle:
 PrintRect_Char: .asciz "█"                      # Char to print with if a5 = 0
 .text
 #-------------------------------------------------------------------------------
-# PrintRect
+# GLIR_PrintRect
 # Args:     a0 = Row of top left corner
 #           a1 = Col of top left corner
 #           a2 = Signed height of the rectangle
@@ -1252,7 +1255,7 @@ PrintCircle_List:   .space 98                   # 8*3*4 bytes + 2, only prints 8
 PrintCircle_Char:   .asciz "█"                  # Char to print with if a4 = 0
 .text
 #-------------------------------------------------------------------------------
-# PrintCircle
+# GLIR_PrintCircle
 # Args:     a0 = row to print at
 #           a1 = col to print at
 #           a2 = radius of the circle to print
@@ -1483,7 +1486,7 @@ GLIR_PrintCircle:
         jalr    zero, ra, 0
 
 #-------------------------------------------------------------------------------
-# Abs
+# _GLIR_Abs
 # Args:     a0 = int to convert; x
 # Returns:  a0 = abs(x)
 #
