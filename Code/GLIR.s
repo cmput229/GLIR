@@ -75,7 +75,7 @@ _TERM_COLS:     .word -1
 #           a1 = number of cols to set the screen to
 #
 # Sets up the display in order to provide a stable environment. Call GLIR_End
-# when program is finished to return to as many defaults and stable settings as
+# when program is finished to return to as many default and stable settings as
 # possible. Unfortunately screen size changes are not code-reversible, so
 # GLIR_End will only return the screen to the hardcoded value of 24x80.
 #-------------------------------------------------------------------------------
@@ -334,10 +334,9 @@ GLIR_PrintString:
 # sorted by color, you may notice flickering.
 #
 # List format (each job contains the following words in order together):
-# half words unsigned:    [row] [col]
-# bytes unsigned:         [printing code] [foreground color] [background color]
-#                         [empty]
-# word:                   [address of string to print]
+# half words unsigned:  [row] [col]
+# bytes unsigned:       [printing code] [fg color] [bg  color] [empty]
+# word:                 [address of string to print]
 # total = 3 words
 #
 # The batch must be ended with the halfword sentinel: 0xFFFF
@@ -990,9 +989,10 @@ PrintCircle_Char:   .asciz "█"                  # Char to print with if a4 = 0
 # Args:     a0 = row to print at
 #           a1 = col to print at
 #           a2 = radius of the circle to print
-#           a3 = byte code [printing code][fg color][bg color][empty]
-#           determining how to print the circle pixels, compatible with
-#           printList
+#           a3 = byte code [printing code] [fg color] [bg  color] [empty]
+#                bits           [0:7]        [8:15]     [16:23]   [24:31]
+#                determining how to print the circle pixels, compatible with
+#                GLIR_BatchPrint
 #           a4 = Address of null-terminated string to print with; if 0 then uses
 #                the unicode full block char (█) as default
 #
