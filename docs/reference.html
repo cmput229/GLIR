@@ -33,19 +33,27 @@
     </div>
 </div>
 
-    <div class="container-fluid">
-
-        <h1 class="greentext"><strong>GLIR - API Reference</strong></h1>
+<div class="container-fluid">
+    <h1 class="greentext"><strong>GLIR - API Reference</strong></h1>
 
     <ul>
         <li><b><a href="#Util">Utilities</a></b></li>
             <ul>
                 <li><b><a href="#Start">GLIR_Start</a></b></li>
+                <li><b><a href="#End">GLIR_End</a></b></li>
+                <li><b><a href="#Restore">GLIR_RestoreSettings</a></b></li>
+                <li><b><a href="#Clear">GLIR_ClearScreen</a></b></li>
+                <li><b><a href="#Set">GLIR_SetColor</a></b></li>
             </ul>
         </li>
-        <li><b><a href="#Print">Printing</a></b>
+        <li><b><a href="#Printing">Printing</a></b>
             <ul>
+                <li><b><a href="#PrintString">GLIR_PrintString</a></b></li>
+                <li><b><a href="#Batch">GLIR_BatchPrint</a></b></li>
                 <li><b><a href="#PrintLine">GLIR_PrintLine</a></b></li>
+                <li><b><a href="#PrintTriangle">GLIR_PrintTriangle</a></b></li>
+                <li><b><a href="#PrintRect">GLIR_PrintRect</a></b></li>
+                <li><b><a href="#PrintCircle">GLIR_PrintCircle</a></b></li>
             </ul>
         </li>
     </ul>
@@ -53,40 +61,303 @@
     <!-- <div><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></div> -->
 
     <div class="container-fluid">
-        <div class="row">
-            <div id="Util">
-                <h2 class="greentext">Utilities</h2>
-            </div>
-                <div id="Start">
-                    <div class="col-md-12 col-md-offset-1">
-                        <dl><h4>GLIR_Start:</h4>
-                            <!-- <div class="col-md-12 col-md-offset-1"> -->
-                            <blockquote>
-                            <div><dl>
-                            <dt>Args:</dt>
-                                    <dd>&emsp;a0 = number of rows to set the screen to<br>
-                                        &emsp;a1 = number of cols to set the screen to<br></dd>
-                                        <br>
-                                        Sets up the display in order to provide a stable environment. Call GLIR_End<br>
-                                        when program is finished to return to as many default and stable settings as<br>
-                                        possible. Unfortunately screen size changes are not code-reversible, so<br>
-                                        GLIR_End will only return the screen to the hardcoded value of 24x80.
-                            </dl>
-                            </div></blockquote>
-                            <!-- </div> -->
-                        </dl>
-                    </div>
-                </div>
-
-            <div id="Print">
-                <h2 class="greentext">Printing</h2>
-            </div>
-                <div id="PrintLine">
-                    <div class="col-md-12 col-md-offset-1">
-                        <h4>GLIR_PrintLine:</h4>
-                    </div>
-                </div>
+        <div id="Util">
+            <h2 class="greentext">Utilities</h2>
         </div>
+            <div id="Start" style="margin-left: 2em">
+                <dl><code-ref>GLIR_Start:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Number of rows to set the screen to<br>
+                                &emsp;a1 = Number of cols to set the screen to</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Sets up the display in order to provide a stable environment. Call GLIR_End<br>
+                        when program is finished to return to as many default and stable settings as<br>
+                        possible. Unfortunately screen size changes are not code-reversible, so<br>
+                        GLIR_End will only return the screen to the hardcoded value of 24x80.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="End" style="margin-left: 2em">
+                <dl><code-ref>GLIR_End:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Reverts to default as many settings as possible. Meant to end a program that<br>
+                        was started with GLIR_Start. The default terminal window in xfce4-terminal is<br>
+                        24x80, so this is the assumed default we want to return to.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="Restore" style="margin-left: 2em">
+                <dl><code-ref>GLIR_RestoreSettings:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints the escape sequence that restores all default color settings to the<br>
+                        terminal.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="Clear" style="margin-left: 2em">
+                <dl><code-ref>GLIR_ClearScreen:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Print the escape sequence that clears the screen.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="Set" style="margin-left: 2em">
+                <dl><code-ref>GLIR_SetColor:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Color code (see <a href="../index.html">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
+                                &emsp;a1 = 0 if setting background, 1 if setting foreground</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints the escape sequence that sets the color of the text to the color<br>
+                        specified.<br>
+                        <br>
+                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html">index</a> or<br>
+                        <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+
+        <div id="Printing">
+            <h2 class="greentext">Printing</h2>
+        </div>
+            <div id="PrintString" style="margin-left: 2em">
+                <dl><code-ref>GLIR_PrintString:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Address of string to print<br>
+                                &emsp;a1 = Integer value 0-999, row to print to<br>
+                                &emsp;a2 = Integer value 0-999, col to print to</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints the specified null-terminated string according to the printing<br>
+                        preferences of your terminal (standard terminals print left to right, top to<br>
+                        bottom). Prints starting at the specified location of the string and continues<br>
+                        until the end of the string. Is not screen aware; passing paramaters that<br>
+                        would print a character off screen has undefined effects on your terminal<br>
+                        window. For most terminals the cursor will wrap around to the next row and<br>
+                        continue printing. If you have hit the bottom of the terminal window, the<br>
+                        xfce4-terminal window default behavior is to scroll the window down. This can<br>
+                        offset your screen without you knowing and is dangerous since it is<br>
+                        undetectable. The most likely useage of this subroutine is to print<br>
+                        characters. The reason that it is a string that is printed is to support the<br>
+                        printing of escape character sequences around the character so that fancy<br>
+                        effects are supported. Some other terminals may treat the boundaries of the<br>
+                        terminal window different. For example, some may not wrap or scroll. It is up<br>
+                        to the user to test their terminal window for its default behaviour. Built for<br>
+                        xfce4-terminal. Position (0, 0) is defined as the top left of the terminal.<br>
+                        <br>
+                        Uses TERM_ROW and TERM_COL to determine if the target tile is outside of the<br>
+                        boundary of the terminal screen, in which case it does nothing.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="Batch" style="margin-left: 2em">
+                <dl><code-ref>GLIR_BatchPrint:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Address of batch list to print</dd>
+                        <br>
+                    <dt>Register Usage:</dt>
+                            <dd>&emsp;s1 = Scanner for the list<br>
+                                &emsp;s2 = Store row info<br>
+                                &emsp;s3 = Store column info<br>
+                                &emsp;s4 = Store print code info<br>
+                                &emsp;s5 = Temporary color info storage accross calls<br>
+                                &emsp;s6 = Temporary color info storage accross calls</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        A batch is a list of print jobs. The print jobs are in the format below, and<br>
+                        will be printed from start to finish. This subroutine does some basic<br>
+                        optimization of color printing (eg. color changing codes are not printed if<br>
+                        they do not need to be), but if the list constantly changes color and is not<br>
+                        sorted by color, you may notice flickering.<br>
+                        <br>
+                        List format (each job contains the following words in order together):<br>
+                        half words unsigned: &ensp; [row] [col]<br>
+                        bytes unsigned: &emsp;&emsp;&emsp; [printing code] [fg color] [bg  color] [empty]<br>
+                        word: &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;[address of string to print]<br>
+                        total = 3 words<br>
+                        <br>
+                        The batch must be ended with the halfword sentinel: 0xFFFF<br>
+                        <br>
+                        Valid Printing codes:<br>
+                        0 = skip printing<br>
+                        1 = standard print, default terminal settings<br>
+                        2 = print using foreground color<br>
+                        3 = print using background color<br>
+                        4 = print using all colors<br>
+                        <br>
+                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html">index</a> or<br>
+                        <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.<br>
+                        <br>
+                        The payload of each job in the list is the address of a string.<br>
+                        Escape sequences for prettier or bolded printing supported by your terminal<br>
+                        can be included in the strings. However, including such escape sequences can<br>
+                        effect not just this print, but also future prints for other GLIR subroutines.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="PrintLine" style="margin-left: 2em">
+                <dl><code-ref>GLIR_PrintLine:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Row1<br>
+                                &emsp;a1 = Col1<br>
+                                &emsp;a2 = Row2<br>
+                                &emsp;a3 = Col2<br>
+                                &emsp;a4 = Color to print with<br>
+                                &emsp;a5 = Address of null-terminated string to print with; if 0 then uses<br>
+                                &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints a line onto the screen between points (Row1, Col1) and (Row2, Col2).<br>
+                        <br>
+                        The reason that it is a string that is printed is to support the printing of<br>
+                        escape character sequences around the character so that fancy effects are<br>
+                        supported. Printing more than one character when not using escape sequences<br>
+                        will have undefined behaviour.<br>
+                        <br>
+                        Algorithm from:<br>
+                        <a href="https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h">https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h</a>
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="PrintTriangle" style="margin-left: 2em">
+                <dl><code-ref>GLIR_PrintTriangle:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Row1<br>
+                                &emsp;a1 = Col1<br>
+                                &emsp;a2 = Row2<br>
+                                &emsp;a3 = Col2<br>
+                                &emsp;a4 = Row3<br>
+                                &emsp;a5 = Col3<br>
+                                &emsp;a6 = Color to print with<br>
+                                &emsp;a7 = Address of null-terminated string to print with; if 0 then uses<br>
+                                &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints a triangle onto the screen connected by the points (Row1, Col1),<br>
+                        (Row2, Col2), (Row3, Col3).<br>
+                        <br>
+                        The reason that it is a string that is printed is to support the printing of<br>
+                        escape character sequences around the character so that fancy effects are<br>
+                        supported. Printing more than one character when not using escape sequences<br>
+                        will have undefined behaviour.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="PrintRect" style="margin-left: 2em">
+                <dl><code-ref>GLIR_PrintRect:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Row of top left corner<br>
+                                &emsp;a1 = Col of top left corner<br>
+                                &emsp;a2 = Signed height of the rectangle<br>
+                                &emsp;a3 = Signed width of the rectangle<br>
+                                &emsp;a4 = Color to print with<br>
+                                &emsp;a5 = Address of null-terminated string to print with; if 0 then uses<br>
+                                &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints a rectangle using the (Row, Col) point as the top left corner having<br>
+                        width and height as specified. Supports negative widths and heights.<br>
+                        Specifying a height and width of 0 will print a rectangle one cell high by<br>
+                        one cell wide.<br>
+                        <br>
+                        The reason that it is a string that is printed is to support the printing of<br>
+                        escape character sequences around the character so that fancy effects are<br>
+                        supported. Printing more than one character when not using escape sequences<br>
+                        will have undefined behaviour.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="PrintCircle" style="margin-left: 2em">
+                <dl><code-ref>GLIR_PrintCircle:</code-ref>
+                    <blockquote>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = Row to print at<br>
+                                &emsp;a1 = Col to print at<br>
+                                &emsp;a2 = Radius of the circle to print<br>
+                                &emsp;a3 = Byte code [printing code] [fg color] [bg  color] [empty]<br>
+                                &emsp;&emsp;&emsp;&ensp;bits&emsp;&emsp;&emsp;&emsp;&emsp;&ensp; [0:7]&emsp;&emsp;&emsp;&ensp; [8:15]&emsp;&emsp;[16:23]&emsp;[24:31]<br>
+                                &emsp;&emsp;&emsp;&ensp;determining how to print the circle pixels, compatible with<br>
+                                &emsp;&emsp;&emsp;&ensp;GLIR_BatchPrint<br>
+                                &emsp;a4 = Address of null-terminated string to print with; if 0 then uses<br>
+                                &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Prints a rectangle using the (Row, Col) point as the top left corner having<br>
+                        width and height as specified. Supports negative widths and heights.<br>
+                        Specifying a height and width of 0 will print a rectangle one cell high by<br>
+                        one cell wide.<br>
+                        <br>
+                        The reason that it is a string that is printed is to support the printing of<br>
+                        escape character sequences around the character so that fancy effects are<br>
+                        supported. Printing more than one character when not using escape sequences<br>
+                        will have undefined behaviour.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
 
     </div>
 
