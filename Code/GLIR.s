@@ -35,7 +35,7 @@
 # https://cmput229.github.io/GLIR/
 # Per-method documentation is provided in the block comment preceding each
 # subroutine definition, in the ../docs/reference.html, or at
-# https://cmput229.github.io/GLIR/reference.html
+# https://cmput229.github.io/GLIR/docs/reference.html
 #
 # Does not support being run in a terminal tab; requires a separate window.
 #
@@ -71,8 +71,8 @@ _TERM_COLS:     .word -1
         jal     zero, main                      # Don't enter lib unless asked
 #-------------------------------------------------------------------------------
 # GLIR_Start
-# Args:     a0 = number of rows to set the screen to
-#           a1 = number of cols to set the screen to
+# Args:     a0 = Number of rows to set the screen to
+#           a1 = Number of cols to set the screen to
 #
 # Sets up the display in order to provide a stable environment. Call GLIR_End
 # when program is finished to return to as many default and stable settings as
@@ -104,8 +104,8 @@ GLIR_Start:
 #-------------------------------------------------------------------------------
 # GLIR_End
 #
-# Reverts to default as many settings as it can, meant to end a program that was
-# started with Start. The default terminal window in xfce4-terminal is
+# Reverts to default as many settings as possible. Meant to end a program that
+# was started with GLIR_Start. The default terminal window in xfce4-terminal is
 # 24x80, so this is the assumed default we want to return to.
 #-------------------------------------------------------------------------------
 GLIR_End:
@@ -161,7 +161,7 @@ ClearScreen_String: .byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
 #-------------------------------------------------------------------------------
 # GLIR_ClearScreen
 #
-# Uses xfce4-terminal escape sequence to clear the screen.
+# Print the escape sequence that clears the screen.
 #-------------------------------------------------------------------------------
 GLIR_ClearScreen:
         la      a7, _PRINT_STRING
@@ -178,7 +178,7 @@ SetColor_String:    .byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30,
 .text
 #-------------------------------------------------------------------------------
 # GLIR_SetColor
-# Args:     a0 = color code (see index)
+# Args:     a0 = Color code (see index)
 #           a1 = 0 if setting background, 1 if setting foreground
 #
 # Prints the escape sequence that sets the color of the text to the color
@@ -245,9 +245,9 @@ GLIR_SetColor:
 .text
 #-------------------------------------------------------------------------------
 # GLIR_PrintString
-# Args:     a0 = address of string to print
-#           a1 = integer value 0-999, row to print to
-#           a2 = integer value 0-999, col to print to
+# Args:     a0 = Address of string to print
+#           a1 = Integer value 0-999, row to print to
+#           a2 = Integer value 0-999, col to print to
 #
 # Prints the specified null-terminated string according to the printing
 # preferences of your terminal (standard terminals print left to right, top to
@@ -319,13 +319,13 @@ GLIR_PrintString:
 .text
 #-------------------------------------------------------------------------------
 # GLIR_BatchPrint
-# Args:     a0 = address of batch list to print
-# Reg. Use: s1 = scanner for the list
-#           s2 = store row info
-#           s3 = store column info
-#           s4 = store print code info
-#           s7 = temporary color info storage accross calls
-#           s8 = temporary color info storage accross calls
+# Args:     a0 = Address of batch list to print
+# Reg. Use: s1 = Scanner for the list
+#           s2 = Store row info
+#           s3 = Store column info
+#           s4 = Store print code info
+#           s5 = Temporary color info storage accross calls
+#           s6 = Temporary color info storage accross calls
 #
 # A batch is a list of print jobs. The print jobs are in the format below, and
 # will be printed from start to finish. This subroutine does some basic
@@ -367,15 +367,15 @@ GLIR_BatchPrint:
         sw      s2, -12(s0)
         sw      s3, -16(s0)
         sw      s4, -20(s0)
-        sw      s7, -24(s0)
-        sw      s8, -28(s0)
+        sw      s5, -24(s0)
+        sw      s6, -28(s0)
 
         addi    s1, a0, 0                       # Scanner = start of batch
 
         jal     ra, GLIR_RestoreSettings
         # Store the last known colors, to avoid un-needed printing
-        li      s7, -1                          # LastFg = -1
-        li      s8, -1                          # LastBg = -1
+        li      s5, -1                          # LastFg = -1
+        li      s6, -1                          # LastBg = -1
 
         # For item in list
         BatchPrint_Scan:
@@ -399,13 +399,13 @@ GLIR_BatchPrint:
                 # Check if we need to reset the color
                 li      t0, -1
                 # If Fg and Bg are -1 then current settings are terminal default
-                bne     s7, t0, BatchPrint_ScanClearColor   # If LastFg != -1
-                bne     s8, t0, BatchPrint_ScanClearColor   # OR LastBg != -1
+                bne     s5, t0, BatchPrint_ScanClearColor   # If LastFg != -1
+                bne     s6, t0, BatchPrint_ScanClearColor   # OR LastBg != -1
                 jal     zero, BatchPrint_ScanClearEnd
                 BatchPrint_ScanClearColor:
                 jal     ra, GLIR_RestoreSettings
-                li      s7, -1
-                li      s8, -1
+                li      s5, -1
+                li      s6, -1
 
                 BatchPrint_ScanClearEnd:
                 # Change foreground color if needed
@@ -417,8 +417,8 @@ GLIR_BatchPrint:
                 jal     zero, BatchPrint_FgColorEnd
                 BatchPrint_FgColor:
                 lbu     t0, 5(s1)
-                beq     t0, s7, BatchPrint_FgColorEnd   # If Color != LastFg
-                addi    s7, t0, 0               # Store to LastFg
+                beq     t0, s5, BatchPrint_FgColorEnd   # If Color != LastFg
+                addi    s5, t0, 0               # Store to LastFg
                 addi    a0, t0, 0               # Set as foreground color
                 li      a1, 1
                 jal     ra, GLIR_SetColor
@@ -433,8 +433,8 @@ GLIR_BatchPrint:
                 jal     zero, BatchPrint_BgColorEnd
                 BatchPrint_BgColor:
                 lbu     t0, 6(s1)
-                beq     t0, s8, BatchPrint_BgColorEnd   # If Color != LastBg
-                addi    s8, t0, 0               # Store to LastBg
+                beq     t0, s6, BatchPrint_BgColorEnd   # If Color != LastBg
+                addi    s6, t0, 0               # Store to LastBg
                 addi    a0, t0, 0               # Set as background color
                 li      a1, 0
                 jal     ra, GLIR_SetColor
@@ -457,77 +457,12 @@ GLIR_BatchPrint:
         lw      s2, -12(s0)
         lw      s3, -16(s0)
         lw      s4, -20(s0)
-        lw      s7, -24(s0)
-        lw      s8, -28(s0)
+        lw      s5, -24(s0)
+        lw      s6, -28(s0)
         addi    sp, sp, 28
         lw      s0, 0(sp)
         addi    sp, sp, 4
 
-
-        jalr    zero, ra, 0
-
-.data
-.align 2
-ColorDemo_Char: .asciz "█"
-.text
-#-------------------------------------------------------------------------------
-# GLIR_ColorDemo
-# Reg. Use: s1 = Holds the initial offset - we start at color 16 because the
-#           first 16 (0-15) don't align very well in this demo. Change it to 0
-#           (and adjust minimum terminal size) if you want the FULL color gamut.
-#           s2 = Holds the current column being printed to.
-#           s3 = Holds the current row being printed to.
-#
-# Attempts to print the 16-256 color gamut of your terminal.
-# Requires that the terminal size be at least 41 rows and 6 cols big.
-# Currently skips the first 15 colors because it's prettier :P
-#-------------------------------------------------------------------------------
-GLIR_ColorDemo:
-        # Stack Adjustments
-        addi    sp, sp, -4                      # Adjust the stack to save fp
-        sw      s0, 0(sp)                       # Save fp
-        add     s0, zero, sp                    # fp <- sp
-        addi    sp, sp, -16                     # Adjust stack to save variables
-        sw      ra, -4(s0)
-        sw      s1, -8(s0)
-        sw      s2, -12(s0)
-        sw      s3, -16(s0)
-
-        jal     ra, GLIR_ClearScreen
-        # Print the colored boxes, skip the first 15 because its prettier
-        # Start at color 16 so that we dont get offset weirdly by the first 15
-        # colors
-        li      s1, 16                          # Color
-        li      s2, 1                           # Col
-        li      s3, 1                           # Row
-        ColorDemo_Loop:                         # While True
-                addi    a0, s1, 0
-                li      a1, 1
-                jal     ra, GLIR_SetColor
-                la      a0, ColorDemo_Char
-                addi    a1, s3, 0
-                addi    a2, s2, 0
-                jal     ra, GLIR_PrintString
-                addi    s2, s2, 1
-                li      t0, 7
-                bne     s2, t0, ColorDemo_LoopCont
-                li      s2, 1
-                addi    s3, s3, 1
-                ColorDemo_LoopCont:
-                addi    s1, s1, 1
-                li      t0, 256
-                beq     s1, t0, ColorDemo_LoopEnd
-                jal     zero, ColorDemo_Loop
-
-        ColorDemo_LoopEnd:
-        # Stack Restore
-        lw      ra, -4(s0)
-        lw      s1, -8(s0)
-        lw      s2, -12(s0)
-        lw      s3, -16(s0)
-        addi    sp, sp, 16
-        lw      s0, 0(sp)
-        addi    sp, sp, 4
 
         jalr    zero, ra, 0
 
@@ -986,10 +921,10 @@ PrintCircle_Char:   .asciz "█"                  # Char to print with if a4 = 0
 .text
 #-------------------------------------------------------------------------------
 # GLIR_PrintCircle
-# Args:     a0 = row to print at
-#           a1 = col to print at
-#           a2 = radius of the circle to print
-#           a3 = byte code [printing code] [fg color] [bg  color] [empty]
+# Args:     a0 = Row to print at
+#           a1 = Col to print at
+#           a2 = Radius of the circle to print
+#           a3 = Byte code [printing code] [fg color] [bg  color] [empty]
 #                bits           [0:7]        [8:15]     [16:23]   [24:31]
 #                determining how to print the circle pixels, compatible with
 #                GLIR_BatchPrint
@@ -1258,8 +1193,8 @@ SetCursor_String:   .byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30,
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_SetCursor
-# Args:     a0 = row number to move to
-#           a1 = col number to move to
+# Args:     a0 = Row number to move to
+#           a1 = Col number to move to
 #
 # Moves the cursor to the specified location on the screen. Max location is 3
 # digits for row number, and 3 digits for column number. (Row, Col).
@@ -1336,8 +1271,8 @@ SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30,
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_SetDisplaySize
-# Args:     a0 = number of rows
-#           a1 = number of columns
+# Args:     a0 = Number of rows
+#           a1 = Number of columns
 #
 # Prints the escape sequence that changes the size of the display to match the
 # parameters passed. The number of rows and cols are ints R and C such that:
@@ -1423,8 +1358,8 @@ IntToChar_Space:    .space 4
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_IntToChar
-# Args:     a0 = integer to convert
-# Returns:  a0 = address of the bytes, in the following order, 1's, 10's, 100's,
+# Args:     a0 = Integer to convert
+# Returns:  a0 = Address of the bytes, in the following order, 1's, 10's, 100's,
 #                1000's
 #
 # Given an int x, where 0 <= x <= 9999, converts the integer into 4 bytes; which
@@ -1493,8 +1428,8 @@ _GLIR_IntToChar:
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_Abs
-# Args:     a0 = int to convert; x
-# Returns:  a0 = abs(x)
+# Args:     a0 = Int to convert; x
+# Returns:  a0 = Abs(x)
 #
 # Branch-less absolute value calculation of a 32-bit int.
 #-------------------------------------------------------------------------------

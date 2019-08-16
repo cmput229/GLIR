@@ -68,3 +68,68 @@ main:
         la      a7, _EXIT
         lw      a7, 0(a7)
         ecall
+
+.data
+.align 2
+ColorDemo_Char: .asciz "█"
+.text
+#-------------------------------------------------------------------------------
+# GLIR_ColorDemo
+# Reg. Use: s1 = Holds the initial offset - we start at color 16 because the
+#           first 16 (0-15) don't align very well in this demo. Change it to 0
+#           (and adjust minimum terminal size) if you want the FULL color gamut.
+#           s2 = Holds the current column being printed to.
+#           s3 = Holds the current row being printed to.
+#
+# Attempts to print the 16-256 color gamut of your terminal.
+# Requires that the terminal size be at least 41 rows and 6 cols big.
+# Currently skips the first 15 colors because it's prettier.
+#-------------------------------------------------------------------------------
+GLIR_ColorDemo:
+        # Stack Adjustments
+        addi    sp, sp, -4                      # Adjust the stack to save fp
+        sw      s0, 0(sp)                       # Save fp
+        add     s0, zero, sp                    # fp <- sp
+        addi    sp, sp, -16                     # Adjust stack to save variables
+        sw      ra, -4(s0)
+        sw      s1, -8(s0)
+        sw      s2, -12(s0)
+        sw      s3, -16(s0)
+
+        jal     ra, GLIR_ClearScreen
+        # Print the colored boxes, skip the first 15 because its prettier
+        # Start at color 16 so that we dont get offset weirdly by the first 15
+        # colors
+        li      s1, 16                          # Color
+        li      s2, 1                           # Col
+        li      s3, 1                           # Row
+        ColorDemo_Loop:                         # While True
+                addi    a0, s1, 0
+                li      a1, 1
+                jal     ra, GLIR_SetColor
+                la      a0, ColorDemo_Char
+                addi    a1, s3, 0
+                addi    a2, s2, 0
+                jal     ra, GLIR_PrintString
+                addi    s2, s2, 1
+                li      t0, 7
+                bne     s2, t0, ColorDemo_LoopCont
+                li      s2, 1
+                addi    s3, s3, 1
+                ColorDemo_LoopCont:
+                addi    s1, s1, 1
+                li      t0, 256
+                beq     s1, t0, ColorDemo_LoopEnd
+                jal     zero, ColorDemo_Loop
+
+        ColorDemo_LoopEnd:
+        # Stack Restore
+        lw      ra, -4(s0)
+        lw      s1, -8(s0)
+        lw      s2, -12(s0)
+        lw      s3, -16(s0)
+        addi    sp, sp, 16
+        lw      s0, 0(sp)
+        addi    sp, sp, 4
+
+        jalr    zero, ra, 0
