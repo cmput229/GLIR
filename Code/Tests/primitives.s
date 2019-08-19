@@ -23,20 +23,20 @@
 #-------------------------------------------------------------------------------
 # A test for the GLIR_PrintLine, GLIR_PrintRect, and GLIR_PrintTriangle
 # primitives. Checks printing of both minimal and larger size shape prints.
-# Checks out of bounds printing. Checks stacking of shapes. Checks that
+# Checks out of bounds printing. Checks stacking of shapes. Checks that the
 # order that points are specififed for GLIR_PrintLine is irrelevant to the
 # end drawing. Checks that providing a string to use for printing primitives
 # works as intended.
 #
-# Note that many shapes look much better when drawn larger. Small shapes will 
-# suffer from the restrictions of printing to a terminal (terminals and fonts 
-# are not square even if they are monospace, thus a square grid renders a 
-# rectangular shape) and the alignment of how characters are printed may look 
+# Note that many shapes look much better when drawn larger. Small shapes will
+# suffer from the restrictions of printing to a terminal (terminals and fonts
+# are not square even if they are monospace, thus a square grid renders a
+# rectangular shape) and the alignment of how characters are printed may look
 # off.
 #
 # Use the runPrimitives shell script to run this test.
 #-------------------------------------------------------------------------------
- 
+
 .include        "../GLIR.s"
 
 .data
@@ -75,10 +75,10 @@ main:
         # Pass the size of terminal
         addi    s1, zero, 50                    # ScreenRows
         addi    s2, zero, 90                    # ScreenColumns
-        add     a0, s1, zero                      
-        add     a1, s2, zero                         
+        add     a0, s1, zero
+        add     a1, s2, zero
         jal     ra, GLIR_Start
-        
+
         # Load some colors to use to distinguish different prints
         addi    s3, zero, 6                     # s3 = Teal
         addi    s4, zero, 5                     # s4 = Purple
@@ -134,12 +134,12 @@ main:
         jal     GLIR_PrintLine
         # Specify rightmost point first to show that order points are provided
         # doesn't matter
-        addi    a0, zero, 0              
-        addi    a1, zero, 5              
-        addi    a2, zero, 0               
-        addi    a3, zero, 4               
+        addi    a0, zero, 0
+        addi    a1, zero, 5
+        addi    a2, zero, 0
+        addi    a3, zero, 4
         add     a4, zero, s3
-        add     a5, zero, zero               
+        add     a5, zero, zero
         jal     GLIR_PrintLine
         # Vertical line
         addi    a0, zero, 0
@@ -184,7 +184,7 @@ main:
         add     a5, zero, zero
         jal     GLIR_PrintLine
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000
@@ -193,7 +193,7 @@ main:
         ## Lines with varying delta
         # Order of execution of the GLIR_PrintLine subroutine can execute
         # differently depending on whether or not the difference between the
-        # Rows or Cols of the two points is larger 
+        # Rows or Cols of the two points is larger
         # This section checks that the algorithm is printing correctly in all
         # cases and demonstrates how lines look with a large delta Col but small
         # delta Row
@@ -291,7 +291,7 @@ main:
         la      a5, VerticalBar
         jal     GLIR_PrintLine
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000
@@ -316,34 +316,34 @@ main:
         add     a6, zero, s3                    # Color
         add     a7, zero, zero                  # StrAddress; use default
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 9                     
-        addi    a1, zero, 10                
-        addi    a2, zero, 13                  
-        addi    a3, zero, 7               
-        addi    a4, zero, 13                    
-        addi    a5, zero, 10                 
+        addi    a0, zero, 9
+        addi    a1, zero, 10
+        addi    a2, zero, 13
+        addi    a3, zero, 7
+        addi    a4, zero, 13
+        addi    a5, zero, 10
         add     a6, zero, s3
-        add     a7, zero, zero           
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
 
         # Check that rect prints correctly when given negative height and widths
-        addi    a0, zero, 13                    
-        addi    a1, zero, 13                    
-        addi    a2, zero, -4                    
-        addi    a3, zero, 3                     
+        addi    a0, zero, 13
+        addi    a1, zero, 13
+        addi    a2, zero, -4
+        addi    a3, zero, 3
         add     a4, zero, s3
-        add     a5, zero, zero                 
+        add     a5, zero, zero
         jal     GLIR_PrintRect
-        addi    a0, zero, 9                     
-        addi    a1, zero, 22                    
-        addi    a2, zero, 4                   
-        addi    a3, zero, -3                    
+        addi    a0, zero, 9
+        addi    a1, zero, 22
+        addi    a2, zero, 4
+        addi    a3, zero, -3
         add     a4, zero, s3
-        add     a5, zero, zero              
+        add     a5, zero, zero
         jal     GLIR_PrintRect
-        addi    a0, zero, 13                    
-        addi    a1, zero, 28                   
-        addi    a2, zero, -4                   
+        addi    a0, zero, 13
+        addi    a1, zero, 28
+        addi    a2, zero, -4
         addi    a3, zero, -3
         add     a4, zero, s3
         add     a5, zero, zero
@@ -426,7 +426,7 @@ main:
         la      a5, Hash
         jal     GLIR_PrintRect
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000
@@ -443,138 +443,138 @@ main:
         add     a6, zero, s3                    # Color
         add     a7, zero, zero                  # StrAddress; use default
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 16                   
-        addi    a1, zero, 4                    
-        addi    a2, zero, 16                   
-        addi    a3, zero, 5                   
-        addi    a4, zero, 17                
+        addi    a0, zero, 16
+        addi    a1, zero, 4
+        addi    a2, zero, 16
+        addi    a3, zero, 5
+        addi    a4, zero, 17
         addi    a5, zero, 5
-        add     a6, zero, s3                    
-        add     a7, zero, zero                 
-        jal     GLIR_PrintTriangle
-        addi    a0, zero, 16                   
-        addi    a1, zero, 8                    
-        addi    a2, zero, 17                   
-        addi    a3, zero, 8                   
-        addi    a4, zero, 17                
-        addi    a5, zero, 7                     
         add     a6, zero, s3
-        add     a7, zero, zero                  
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 16                   
-        addi    a1, zero, 10                    
-        addi    a2, zero, 17                   
-        addi    a3, zero, 11                   
-        addi    a4, zero, 17                
-        addi    a5, zero, 10                     
+        addi    a0, zero, 16
+        addi    a1, zero, 8
+        addi    a2, zero, 17
+        addi    a3, zero, 8
+        addi    a4, zero, 17
+        addi    a5, zero, 7
         add     a6, zero, s3
-        add     a7, zero, zero                    
+        add     a7, zero, zero
+        jal     GLIR_PrintTriangle
+        addi    a0, zero, 16
+        addi    a1, zero, 10
+        addi    a2, zero, 17
+        addi    a3, zero, 11
+        addi    a4, zero, 17
+        addi    a5, zero, 10
+        add     a6, zero, s3
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
         # Print other small triangles
-        addi    a0, zero, 16                   
-        addi    a1, zero, 13                    
-        addi    a2, zero, 16                   
-        addi    a3, zero, 15                   
-        addi    a4, zero, 17                
-        addi    a5, zero, 14                     
+        addi    a0, zero, 16
+        addi    a1, zero, 13
+        addi    a2, zero, 16
+        addi    a3, zero, 15
+        addi    a4, zero, 17
+        addi    a5, zero, 14
         add     a6, zero, s3
-        add     a7, zero, zero                   
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 16                   
-        addi    a1, zero, 17                    
-        addi    a2, zero, 17                   
-        addi    a3, zero, 18                   
-        addi    a4, zero, 18                
-        addi    a5, zero, 17                     
+        addi    a0, zero, 16
+        addi    a1, zero, 17
+        addi    a2, zero, 17
+        addi    a3, zero, 18
+        addi    a4, zero, 18
+        addi    a5, zero, 17
         add     a6, zero, s3
-        add     a7, zero, zero                   
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 18                   
-        addi    a1, zero, 20                    
-        addi    a2, zero, 17                   
-        addi    a3, zero, 22                   
-        addi    a4, zero, 18                
-        addi    a5, zero, 22                     
+        addi    a0, zero, 18
+        addi    a1, zero, 20
+        addi    a2, zero, 17
+        addi    a3, zero, 22
+        addi    a4, zero, 18
+        addi    a5, zero, 22
         add     a6, zero, s3
-        add     a7, zero, zero                  
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 16                   
-        addi    a1, zero, 24                    
-        addi    a2, zero, 16                   
-        addi    a3, zero, 26                   
-        addi    a4, zero, 17                
-        addi    a5, zero, 24                     
+        addi    a0, zero, 16
+        addi    a1, zero, 24
+        addi    a2, zero, 16
+        addi    a3, zero, 26
+        addi    a4, zero, 17
+        addi    a5, zero, 24
         add     a6, zero, s3
-        add     a7, zero, zero                    
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000
         ecall
 
         ## Larger triangles
-        addi    a0, zero, 21                   
-        addi    a1, zero, 1                    
-        addi    a2, zero, 21                   
-        addi    a3, zero, 13                   
-        addi    a4, zero, 35                
-        addi    a5, zero, 7                     
+        addi    a0, zero, 21
+        addi    a1, zero, 1
+        addi    a2, zero, 21
+        addi    a3, zero, 13
+        addi    a4, zero, 35
+        addi    a5, zero, 7
         add     a6, zero, s3
-        add     a7, zero, zero                 
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 23                   
-        addi    a1, zero, 4                    
-        addi    a2, zero, 23                   
-        addi    a3, zero, 10                   
-        addi    a4, zero, 27                
-        addi    a5, zero, 7                     
+        addi    a0, zero, 23
+        addi    a1, zero, 4
+        addi    a2, zero, 23
+        addi    a3, zero, 10
+        addi    a4, zero, 27
+        addi    a5, zero, 7
         add     a6, zero, s4
-        add     a7, zero, zero                  
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
 
-        addi    a0, zero, 21                   
-        addi    a1, zero, 16                    
-        addi    a2, zero, 21                   
-        addi    a3, zero, 26                   
-        addi    a4, zero, 24                
-        addi    a5, zero, 26                     
+        addi    a0, zero, 21
+        addi    a1, zero, 16
+        addi    a2, zero, 21
+        addi    a3, zero, 26
+        addi    a4, zero, 24
+        addi    a5, zero, 26
         add     a6, zero, s3
-        add     a7, zero, zero                 
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
-        addi    a0, zero, 26                   
-        addi    a1, zero, 16                    
-        addi    a2, zero, 26                   
-        addi    a3, zero, 26                   
-        addi    a4, zero, 35                
-        addi    a5, zero, 16                     
+        addi    a0, zero, 26
+        addi    a1, zero, 16
+        addi    a2, zero, 26
+        addi    a3, zero, 26
+        addi    a4, zero, 35
+        addi    a5, zero, 16
         add     a6, zero, s3
-        add     a7, zero, zero                  
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
 
-        addi    a0, zero, 21                   
-        addi    a1, zero, 47                    
-        addi    a2, zero, 25                   
-        addi    a3, zero, 33                   
-        addi    a4, zero, 35                
-        addi    a5, zero, 28                     
+        addi    a0, zero, 21
+        addi    a1, zero, 47
+        addi    a2, zero, 25
+        addi    a3, zero, 33
+        addi    a4, zero, 35
+        addi    a5, zero, 28
         add     a6, zero, s3
-        add     a7, zero, zero                
+        add     a7, zero, zero
         jal     GLIR_PrintTriangle
 
         # Check that GLIR_PrintRect correctly prints non-default string
-        addi    a0, zero, 23                   
-        addi    a1, zero, 50                    
-        addi    a2, zero, 29                   
-        addi    a3, zero, 72                   
-        addi    a4, zero, 33                
-        addi    a5, zero, 66                     
+        addi    a0, zero, 23
+        addi    a1, zero, 50
+        addi    a2, zero, 29
+        addi    a3, zero, 72
+        addi    a4, zero, 33
+        addi    a5, zero, 66
         add     a6, zero, s3
-        la      a7, ForwardSlash                
+        la      a7, ForwardSlash
         jal     GLIR_PrintTriangle
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000
@@ -584,7 +584,7 @@ main:
         # 89 is 90th column
         addi    s5, zero, 49                    # Col1
         addi    s6, zero, 35                    # Row2
-        
+
         FillLoop:
         # Wait 0.1 seconds
         la      a7, _SLEEP
@@ -609,7 +609,7 @@ main:
         jal     zero, FillLoop
 
         DoneFill:
-        # Wait 0.5 second 
+        # Wait 0.5 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 500
@@ -627,7 +627,7 @@ main:
         # Boxes will fill in after 7 iterations for the given terminal size
         # Col increments by 1 starting at 0... use that as the loop iterator
         bge     s10, t0, DoneRects
-               
+
         # Wait 0.5 seconds
         la      a7, _SLEEP
         lw      a7, 0(a7)
@@ -667,7 +667,7 @@ main:
         add     a5, zero, zero                  # StrAddress; use default
         jal     GLIR_PrintRect
 
-        # Wait 1 second 
+        # Wait 1 second
         la      a7, _SLEEP
         lw      a7, 0(a7)
         li      a0, 1000

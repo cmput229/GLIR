@@ -21,7 +21,11 @@
 # Author: Taylor Zowtuk
 # Date: June 2019
 #-------------------------------------------------------------------------------
-# A demo meant to show off GLIR's GLIR_ColorDemo subroutine.
+# A demo meant to show off a subroutine created for GLIR called GLIR_ColorDemo.
+# This demo attempts to print the 16-256 color gamut of the terminal. It prints
+# 40 rows of 6 unicode full block char starting at color 16 and incrementing
+# the color after each print. This demo's source code illustrates how easy it is
+# to create beautiful displays on the terminal using GLIR's subroutines.
 #
 # Use the runColorDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
@@ -45,7 +49,7 @@ main:
 
         # Pass the size of terminal
         li      a0, 42                          # Number of rows
-        li      a1, 6                           # Number of cols
+        li      a1, 7                           # Number of cols
         jal     ra, GLIR_Start
 
         jal     ra, GLIR_ColorDemo
@@ -82,7 +86,7 @@ ColorDemo_Char: .asciz "█"
 #           s3 = Holds the current row being printed to.
 #
 # Attempts to print the 16-256 color gamut of your terminal.
-# Requires that the terminal size be at least 41 rows and 6 cols big.
+# Requires that the terminal size be at least 41 rows and 7 cols big.
 # Currently skips the first 15 colors because it's prettier.
 #-------------------------------------------------------------------------------
 GLIR_ColorDemo:

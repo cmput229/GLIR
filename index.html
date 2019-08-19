@@ -45,7 +45,7 @@
 <h2 class="greentext">Access to the Code</h2>
 <p>The source code for GLIR can be found at: <a href="https://github.com/cmput229/GLIR">https://github.com/cmput229/GLIR</a>.</p>
 <h2 class="greentext">Access to the API Reference</h2>
-<p>Some high-level library useage is presented here; refer to <a href="./docs/reference.html">GLIR's reference</a> to get a list of all public subroutines and their useage/requirements.</p>
+<p>Some high-level library useage is presented here; for a list of all public subroutines and their useage/requirements, refer to GLIR's reference at: <a href="./docs/reference.html">https://github.com/cmput229/GLIR/docs/reference</a>.</p>
 <h2 class="greentext">License</h2>
 <p>GLIR is free to use, available under the MIT license. Attribution under this license is not required, but always appreciated.</p>
 <h2 class="greentext">Dependencies</h2>
@@ -384,51 +384,8 @@
 </tr>
 </tbody></table>
 <h3 class="greentext">Testing</h3>
-<p>Below are several recordings of the expected output of the various tests and examples included in the GLIR library. You can use these videos to check if GLIR is working correctly with the terminal or simulator you choose to use. The top row are the three tests found in GLIR/Code/Tests while the bottom row are the two demos found in GLIR/Code/Examples. You can fullscreen the embedded videos or find the sources in GLIR/Resources.</p>
-<div class="container-fluid">
-	<div class="row">
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/primitives.mp4" type="video/mp4">
+<p>Demonstrations of the expected output of the tests/demos, which are included with this library, can be found at: <a href="testing.html">https://github.com/cmput229/testing.html</a>.</p>
 
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/restoreClear.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/defaultPrint.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-6">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/colorDemo.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-6">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/demo.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	</div>
-</div>
 <h3 class="greentext">Additional Notes</h3>
 <p>If you create new subroutines, have any suggestions, or notice any issues feel free to make a post in the repository issues section. The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
 

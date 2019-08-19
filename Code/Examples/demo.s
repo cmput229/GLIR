@@ -24,12 +24,14 @@
 # Date: June 2019
 #-------------------------------------------------------------------------------
 # A demo meant to show off GLIR's basic functions (GLIR_BatchPrint,
-# GLIR_PrintString and GLIR_PrintCircle).
-#
-# RISC-V conversion notes: The original MIPS program appears to leave a long
-# vertical bar in the print circles section of code. Without any videos or
-# in-depth documentation of intended functioning I am assuming that this is
-# intended and have avoided fixing this for the purposes of this conversion.
+# GLIR_PrintString, and GLIR_PrintCircle). First, iterates through printable
+# characters and colors while performing a batch print between each iteration.
+# Next, uses GLIR_PrintString to carve out a message (HI!). Lastly, performs a
+# series of calls to GLIR_PrintCircle. The circle is meant to appear to spread
+# towards the edges of the terminal eventually going off screen. Looking at this
+# demo's source code can give one a good idea of how GLIR is meant to be
+# started/stopped as well as how one can use the various methods of printing
+# jobs.
 #
 # Use the runDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
