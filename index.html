@@ -383,10 +383,10 @@
 </td>
 </tr>
 </tbody></table>
-<h3 class="greentext">Testing</h3>
+<h2 class="greentext">Testing</h3>
 <p>Demonstrations of the expected output of the tests/demos, which are included with this library, can be found at: <a href="testing.html">https://github.com/cmput229/testing.html</a>.</p>
 
-<h3 class="greentext">Additional Notes</h3>
+<h2 class="greentext">Additional Notes</h3>
 <p>If you create new subroutines, have any suggestions, or notice any issues feel free to make a post in the repository issues section. The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
 
 </div>
