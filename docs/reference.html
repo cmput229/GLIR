@@ -345,15 +345,57 @@
                     <dt>Returns:</dt>
                             <dd>&emsp;N/A</dd>
                         <br>
-                        Prints a rectangle using the (Row, Col) point as the top left corner having<br>
-                        width and height as specified. Supports negative widths and heights.<br>
-                        Specifying a height and width of 0 will print a rectangle one cell high by<br>
-                        one cell wide.<br>
+                        Prints a circle onto the screen using the midpoint circle algorithm and the<br>
+                        character PrintCircle_Char.<br>
+                        <br>
+                        Valid Printing codes:<br>
+                        0 = skip printing<br>
+                        1 = standard print, default terminal settings<br>
+                        2 = print using foreground color<br>
+                        3 = print using background color<br>
+                        4 = print using all colors<br>
+                        <br>
+                        xfce4-terminal supports the 256 color lookup table assignment; see the index<br>
+                        for a list of color codes.<br>
                         <br>
                         The reason that it is a string that is printed is to support the printing of<br>
                         escape character sequences around the character so that fancy effects are<br>
                         supported. Printing more than one character when not using escape sequences<br>
-                        will have undefined behaviour.
+                        will have undefined behaviour.<br>
+                        <br>
+                        The tuple describing a position on the grid is (R, C) and not (C, R).<br>
+                        Terminals were designed to print text top to bottom, left to right. Their<br>
+                        underlying control structures are built on this assumption. Thus the row<br>
+                        number comes before the column number. The origin (0, 0) is at the top left of<br>
+                        the xfce4-terminal window. Below is an ascii diagram of the notation used in<br>
+                        the comments of the subroutine. The numbers 1,2,3,4 correspond to the<br>
+                        quadrants referred to in this subroutines block comments.<br>
+                        <br>
+                        <pre>
+                        (0,0)
+                        /--------------------------------------> Col
+                        |            |
+                        |            |
+                        |           ███
+                        |         ██ | ██
+                        |        █   |   █
+                        |       █    |    █
+                        |      █  2  |  1  █
+                        |      █     |     █
+                        |     █      |      █
+                        | ----█------+------█----
+                        |     █      |      █
+                        |      █     |     █
+                        |      █  3  |  4  █
+                        |       █    |    █
+                        |        █   |   █
+                        |         ██ | ██
+                        |           ███
+                        |            |
+                        |            |
+                        v
+                        Row
+                    </pre>
                     </dl></div>
                     </blockquote>
                 </dl>
