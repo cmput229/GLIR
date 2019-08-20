@@ -32,10 +32,10 @@
 # primitives.
 #
 # High Level documentation is provided in the ../index.html file or at
-# https://cmput229.github.io/GLIR/
+# https://cmput229.github.io/GLIR
 # Per-method documentation is provided in the block comment preceding each
 # subroutine definition, in the ../docs/reference.html, or at
-# https://cmput229.github.io/GLIR/docs/reference.html
+# https://cmput229.github.io/GLIR/docs/reference
 #
 # Does not support being run in a terminal tab; requires a separate window.
 #
@@ -486,9 +486,6 @@ PrintLine_Char: .asciz "█"                      # Char to print with if a5 = 0
 # escape character sequences around the character so that fancy effects are
 # supported. Printing more than one character when not using escape sequences
 # will have undefined behaviour.
-#
-# Algorithm from:
-# https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h
 #-------------------------------------------------------------------------------
 GLIR_PrintLine:
         # Stack Adjustments

@@ -136,7 +136,7 @@
                     <blockquote>
                     <div><dl>
                     <dt>Args:</dt>
-                            <dd>&emsp;a0 = Color code (see <a href="../index.html">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
+                            <dd>&emsp;a0 = Color code (see <a href="../index.html#Color">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
                                 &emsp;a1 = 0 if setting background, 1 if setting foreground</dd>
                         <br>
                     <dt>Returns:</dt>
@@ -145,7 +145,7 @@
                         Prints the escape sequence that sets the color of the text to the color<br>
                         specified.<br>
                         <br>
-                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html">index</a> or<br>
+                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html#Color">index</a> or<br>
                         <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.
                     </dl></div>
                     </blockquote>
@@ -229,7 +229,7 @@
                         3 = print using background color<br>
                         4 = print using all colors<br>
                         <br>
-                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html">index</a> or<br>
+                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html#Color">index</a> or<br>
                         <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.<br>
                         <br>
                         The payload of each job in the list is the address of a string.<br>
@@ -249,7 +249,7 @@
                                 &emsp;a1 = Col1<br>
                                 &emsp;a2 = Row2<br>
                                 &emsp;a3 = Col2<br>
-                                &emsp;a4 = Color to print with<br>
+                                &emsp;a4 = Color to print with (see <a href="../index.html#Color">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
                                 &emsp;a5 = Address of null-terminated string to print with; if 0 then uses<br>
                                 &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
                         <br>
@@ -261,10 +261,7 @@
                         The reason that it is a string that is printed is to support the printing of<br>
                         escape character sequences around the character so that fancy effects are<br>
                         supported. Printing more than one character when not using escape sequences<br>
-                        will have undefined behaviour.<br>
-                        <br>
-                        Algorithm from:<br>
-                        <a href="https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h">https://github.com/OneLoneCoder/videos/blob/master/olcConsoleGameEngine.h</a>
+                        will have undefined behaviour.
                     </dl></div>
                     </blockquote>
                 </dl>
@@ -280,7 +277,7 @@
                                 &emsp;a3 = Col2<br>
                                 &emsp;a4 = Row3<br>
                                 &emsp;a5 = Col3<br>
-                                &emsp;a6 = Color to print with<br>
+                                &emsp;a6 = Color to print with (see <a href="../index.html#Color">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
                                 &emsp;a7 = Address of null-terminated string to print with; if 0 then uses<br>
                                 &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
                         <br>
@@ -307,7 +304,7 @@
                                 &emsp;a1 = Col of top left corner<br>
                                 &emsp;a2 = Signed height of the rectangle<br>
                                 &emsp;a3 = Signed width of the rectangle<br>
-                                &emsp;a4 = Color to print with<br>
+                                &emsp;a4 = Color to print with (see <a href="../index.html#Color">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
                                 &emsp;a5 = Address of null-terminated string to print with; if 0 then uses<br>
                                 &emsp;&emsp;&emsp;&ensp;the unicode full block char (█) as default</dd>
                         <br>
@@ -355,8 +352,8 @@
                         3 = print using background color<br>
                         4 = print using all colors<br>
                         <br>
-                        xfce4-terminal supports the 256 color lookup table assignment; see the index<br>
-                        for a list of color codes.<br>
+                        xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html#Color">index</a> or<br>
+                        <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.<br>
                         <br>
                         The reason that it is a string that is printed is to support the printing of<br>
                         escape character sequences around the character so that fancy effects are<br>

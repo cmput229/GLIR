@@ -36,7 +36,7 @@
 # Use the runDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
 
-.include        "../GLIR.s"
+.include        "../../src/GLIR.s"
 
 .data
 # Here we store the RARS syscall service numbers which are needed.

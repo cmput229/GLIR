@@ -37,7 +37,7 @@
 # Use the runPrimitives shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../GLIR.s"
+.include        "../../src/GLIR.s"
 
 .data
 # Here we store the RARS syscall service numbers which are needed.
