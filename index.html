@@ -35,15 +35,17 @@
 
 <div class="container-fluid">
 
-<h1 class="greentext"><strong>GLIR - <span style="text-decoration: underline;">G</span>raphics <span style="text-decoration: underline;">Li</span>brary for <span style="text-decoration: underline;">R</span>ISC-V</strong></h1>
+<h1 class="greentext"><strong>GLIR - <span style="text-decoration: underline;">G</span>raphics <span style="text-decoration: underline;">LI</span>brary for <span style="text-decoration: underline;">R</span>ISC-V</strong></h1>
 	<p><small>Created for the University of Alberta CMPUT 229 Computer Architecture course</small></p>
 	<p><small>Author: Austin Crapo, June 2017</small></p>
 	<p><small>Converted for RISC-V: Taylor Zowtuk, May 2019</small></p>
 <hr />
 <h2 class="greentext">Information</h2>
-<p>GLIR is a collection of sub-routines to emulate graphics and it is meant for use with RARS and the Xfce Terminal Emulator. Although most UNIX-system terminals will work, the Xfce terminal was the only used for extensive testing during development (tests/examples also appear to work using GNOME Terminal). The true requirement is that the terminal emulator be DEC VT220 compliant. If the terminal emulator is not compliant GLIR functions will produce a bunch of garbled text. The purpose of GLIR is to abstract away the terminal escape sequences into an organized library that allows beginner assembly programmers to include visual elements in their work. Some high-level functions are presented here. Refer to GLIR's documentation to get the individual function requirements for usage. GLIR has been modified from the original GLIM library to be used with the RISC-V ISA.</p>
+<p>GLIR is a collection of subroutines to emulate graphics and it is meant for use with RARS and the Xfce Terminal Emulator. Although most UNIX-system terminals will work, the Xfce terminal was the only used for extensive testing during development (tests/examples also appear to work using GNOME Terminal). The true requirement is that the terminal emulator be DEC VT220 compliant. If the terminal emulator is not compliant GLIR subroutines will produce a bunch of garbled text. The purpose of GLIR is to abstract away the <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">terminal escape sequences</a> into an organized library that allows beginner assembly programmers to include visual elements in their work. GLIR has been modified from the original <a href="https://github.com/cmput229/GLIM">GLIM library</a> to be used with the RISC-V ISA.</p>
 <h2 class="greentext">Access to the Code</h2>
-<p>The source code for GLIR can be found at: <a href="https://github.com/cmput229/GLIR">https://github.com/cmput229/GLIR</a>
+<p>The source code for GLIR can be found at: <a href="https://github.com/cmput229/GLIR">https://github.com/cmput229/GLIR</a>.</p>
+<h2 class="greentext">Access to the API Reference</h2>
+<p>Some high-level library useage is presented here; for a list of all public subroutines and their useage/requirements, refer to GLIR's reference at: <a href="docs/reference.html">https://cmput229.github.io/GLIR/docs/reference</a>.</p>
 <h2 class="greentext">License</h2>
 <p>GLIR is free to use, available under the MIT license. Attribution under this license is not required, but always appreciated.</p>
 <h2 class="greentext">Dependencies</h2>
@@ -53,7 +55,7 @@
 <h3 class="greentext">Starting GLIR</h3>
 <p>Before you call any of the GLIR printing routines you  must call the following routine:</p>
 <p><code>jal&nbsp;&nbsp;&nbsp; ra, GLIR_Start<br /></code></p>
-<p>This helper function resizes the screen (see input arguments), hides the cursor (which otherwise will interfere with printing), and clears the terminal to the default background color.</p>
+<p>This helper subroutine resizes the screen (see input arguments), hides the cursor (which otherwise will interfere with printing), and clears the terminal to the default background color.</p>
 <p>When your program finishes, and if you had started GLIR, then call the following:</p>
 <p><code>jal&nbsp;&nbsp;&nbsp; ra, GLIR_End<br /></code></p>
 <p><code>GLIR_End</code> undoes most changes so that the terminal window is not left unusable when your program exits. Unfortunately <code>GLIR_End</code> cannot resize the window back to its original size because at the moment there is no method to read and store the terminal size at the start of the program.</p>
@@ -68,23 +70,22 @@
 <p>There are two main ways to handle the synchronization between your own data structure and GLIR. Depending on what you are trying to accomplish one will be preferable over the other, but the second is much better practice and more versatile.</p>
 <h4 class="greentext">Method 1 - Clear and Refresh</h4>
 <p>This is the brute force method. Each time any updates need to happen, you clear the entire screen (using <code>GLIR_ClearScreen</code>). Then you iterate over your data structure and use <code>GLIR_PrintString</code> to print each element of the display again.</p>
-<p>Drawbacks: less built-in function color support, if you need to reprint too often or have too many elements that need printing your screen will flicker uncomfortably. This is because clearing the terminal is very slow (it only requires one command), but printing requires that about 20 characters be printed for each tile you need to print on the screen. A monitor however refreshes very fast. So your monitor is likely to refresh at least once after you have cleared, but before you are done printing all the elements, causing the flicker.</p>
+<p>Drawbacks: less built-in subroutine color support, if you need to reprint too often or have too many elements that need printing your screen will flicker uncomfortably. This is because clearing the terminal is very slow (it only requires one command), but printing requires that about 20 characters be printed for each tile you need to print on the screen. A monitor however refreshes very fast. So your monitor is likely to refresh at least once after you have cleared, but before you are done printing all the elements, causing the flicker.</p>
 <p>Advantage: quick to setup for testing purposes so you can focus on getting the underlying code working.</p>
-<p>Resources: see the <code>GLIR_ClearScreen</code> and <code>GLIR_PrintString</code> methods.</p>
+<p>Resources: see the <code>GLIR_ClearScreen</code> and <code>GLIR_PrintString</code> subroutines.</p>
 <h4 class="greentext" id="batchprinting">Method 2 - Batch and Release</h4>
-<p>This method focuses on calculating changes that need to be made to the screen, and then printing them. When your underlying data-structure representing the screen is changed, you add the changes to a list. When you have enough changes, or when you are finished calculations or ready to print, you then print all the updates at once, leaving the unchanged portions of the screen untouched. This can be important for things such as games or art, where you would rather have all the updates show at once or with as little delay between them as possible. There is a slight overhead in keeping track of this list, however, not nearly as much as clearing the whole screen and reprinting. Also, terminals themselves are slow to print so there's generally no way you can completely eliminate delay between the start and end of printing, but you can reduce it. GLIR has an included method to assist with this concept for printing, that rolls together color printing in a simple 'batch job' format.</p>
+<p>This method focuses on calculating changes that need to be made to the screen, and then printing them. When your underlying data-structure representing the screen is changed, you add the changes to a list. When you have enough changes, or when you are finished calculations or ready to print, you then print all the updates at once, leaving the unchanged portions of the screen untouched. This can be important for things such as games or art, where you would rather have all the updates show at once or with as little delay between them as possible. There is a slight overhead in keeping track of this list, however, not nearly as much as clearing the whole screen and reprinting. Also, terminals themselves are slow to print so there's generally no way you can completely eliminate delay between the start and end of printing, but you can reduce it. GLIR has an included subroutine to assist with this concept for printing, that rolls together color printing in a simple 'batch job' format.</p>
 <p>Advantages: less overhead, fewer updates, more built-in color support, potentially smoother animations</p>
-<p>Resources: see the <code>GLIR_BatchPrint</code> method.</p>
-<p>Of course, there are other methods that can be designed using the individual functions and smart programming. Feel free to experiment. A hybrid approach might for example use <code>GLIR_PrintString</code> and <code>GLIR_SetColor</code> to achieve color printing and carefully be programmed to avoid reprinting too many tiles. It is left up to you how you use this library.
-<h3 class="greentext">Color</h3>
+<p>Resources: see the <code>GLIR_BatchPrint</code> subroutine.</p>
+<p>Of course, there are other methods that can be designed using the individual subroutines and smart programming. Feel free to experiment. A hybrid approach might for example use <code>GLIR_PrintString</code> and <code>GLIR_SetColor</code> to achieve color printing and carefully be programmed to avoid reprinting too many tiles. It is left up to you how you use this library.
+<h3 class="greentext" id="Color">Color</h3>
 <p>Support for colors in terminals has been around for a long time - but universal adoption is not yet a reality. For those terminals that do support it, different levels and standards have been adopted as the terminal emulators matured. Seven color terminals were upgraded to 256 color terminals and then to a 3-byte Red-Green-Blue (RGB) color generation. GLIR is designed to support 256-color terminals or above (3-byte RGB terminals will also work because they also support the 256-color codes). The Xfce4-terminal is a 256-color terminal. Below is a table that shows the supported color codes (see <code>GLIR_SetColor</code> or <code>GLIR_BatchPrint</code> for usage).</p>
-<p>In GLIR you change terminal color settings (using <code>GLIR_SetColor</code>) in the same way that you print to the terminal. You may 'push' a color setting, but you cannot check what the current setting is. Future prints will be in the color set, past prints will not be affected. Therefore, part of <code>GLIR_Start</code> is to set the color to the defaults (default is based on your terminal defaults, which are usually white text on black background in Linux). The <code>GLIR_RestoreSettings</code> method can be used to restore the default color settings.</p>
-<p>
-	The following table is extracted from <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#Colors">wikipedia</a>
+<p>In GLIR you change terminal color settings (using <code>GLIR_SetColor</code>) in the same way that you print to the terminal. You may 'push' a color setting, but you cannot check what the current setting is. Future prints will be in the color set, past prints will not be affected. Therefore, part of <code>GLIR_Start</code> is to set the color to the defaults (default is based on your terminal defaults, which are usually white text on black background in Linux). The <code>GLIR_RestoreSettings</code> subroutine can be used to restore the default color settings.</p>
+<p>The following table is extracted from <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wikipedia</a>:</p>
 
-<table class="collapsible" style="text-align:center;font-size:80%;width:100%;background:#f6f6f6;cursor:default;" id="collapsibleTable0" cellspacing="1" cellpadding="0">
+<table style="text-align:center;font-size:80%;width:100%;background:#f6f6f6;cursor:default;" cellspacing="1" cellpadding="0">
 <tbody><tr>
-<th colspan="36"><span class="collapseButton">[<a id="collapseButton0" href="#">hide</a>]</span>256-color mode — foreground: ESC[38;5;#m &nbsp; background: ESC[48;5;#m</th>
+<th colspan="36">256-color mode — foreground: ESC[38;5;#m &nbsp; background: ESC[48;5;#m</th>
 </tr>
 <tr style="display: table-row;">
 <td colspan="18">Standard colors</td>
@@ -382,55 +383,20 @@
 </td>
 </tr>
 </tbody></table>
-<h3 class="greentext">Testing</h3>
-<p>Below are several recordings of the expected output of the various tests and examples included in the GLIR library. You can use these videos to check if GLIR is working correctly with the terminal or simulator you choose to use. The top row are the three tests found in GLIR/Code/Tests while the bottom row are the two demos found in GLIR/Code/Examples. You can fullscreen the embedded videos or find the sources in GLIR/Resources.</p>
-<div class="container-fluid">
-	<div class="row">
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/primitives.mp4" type="video/mp4">
+<h2 class="greentext">Testing</h2>
+<p>Demonstrations of the expected output of the tests/demos, which are included with this library, can be found at: <a href="Testing/testing.html">https://cmput229.github.io/GLIR/Testing/testing</a>.</p>
 
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/restoreClear.mp4" type="video/mp4">
+<h2 class="greentext">Additional Notes</h2>
+<p>If you create new subroutines or have any suggestions feel free to make a pull request and we will consider incorporating it. For any questions or problems with GLIR please create an issue on the repository. The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
 
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-4">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/defaultPrint.mp4" type="video/mp4">
+<h2 class="greentext">Contributions</h2>
+<p><a href="https://github.com/AustinGrey">AustinGrey</a>: Creator of GLIM.</p>
+<p><a href="https://github.com/TaylorZowtuk">TaylorZowtuk</a>: Converted GLIM to GLIR; implemented GLIR_PrintLine/PrintTriangle/PrintRect; created tests; various bugfixes; expanded documentation.</p>
+<p><a href="https://github.com/zacharyselk">zacharyselk</a>: Bugfixed GLIR_PrintCircle; reviewed and tested GLIR; provided guidance on library software practices throughout conversion</p>
+<p><a href="https://github.com/rmnattas">rmnattas</a>: Reviewed and tested GLIR.</p>
+<p><a href="https://github.com/mehrabmehdi">mehrabmehdi</a>: Reviewed and tested GLIR.</p>
 
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-6">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/colorDemo.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	  <div class="col-xs-6">
-		<div class="embed-responsive embed-responsive-16by9">
-			<video autoplay loop controls muted class="embed-responsive-item">
-				<source src="Resources/demo.mp4" type="video/mp4">
-
-				Sorry, your browser doesn't support embedded videos.
-		</div>
-	  </div>
-	</div>
 </div>
-<h3 class="greentext">Additional Notes</h3>
-<p>The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. If you create new functions, please send your code to zowtuk@ualberta.ca with enough author info so I can cite you and I'll consider adding it to the library. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
-
 </body>
 </html>
 

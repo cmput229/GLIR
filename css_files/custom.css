@@ -77,11 +77,21 @@ body{
 
 h1, h2, h3, h4, h5, h6, .site-title {
 	margin: 1em 0 .3em;
-	font-family: "DinWeb Medium",sans-serif;
+	font-family: "DinWeb Medium", sans-serif;
 	font-weight: normal;
 	line-height: 1;
 	color: inherit;
 	text-rendering: optimizelegibility;
+}
+
+code-ref {
+	margin: 1em 0 .3em;
+	font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+	font-weight: normal;
+	line-height: 1.5;
+	color: inherit;
+	text-rendering: optimizelegibility;
+	font-size: 22px;
 }
 
 .greentext{
@@ -213,7 +223,7 @@ h5.sidebar-title {
 	border-radius: 4px;
 	-webkit-box-shadow: 0 1px 4px rgba(0,30,15,.2);
 	-moz-box-shadow: 0 1px 4px rgba(0,30,15,.2);
-	box-shadow: 0 1px 4px rgba(0,30,15,.2);	
+	box-shadow: 0 1px 4px rgba(0,30,15,.2);
 	margin-top: 10px;
 }
 
@@ -379,7 +389,7 @@ width: 100%;
     display: block;
 }
 
-.emphasis-text { 
+.emphasis-text {
     font-weight: bold;
 }
 
@@ -410,7 +420,7 @@ a.site-title {
 }
 
 a.site-title:hover {
-    color: #FFDB05;  
+    color: #FFDB05;
 }
 
 .fa-asterisk {
@@ -421,7 +431,7 @@ a.site-title:hover {
 }
 
 #wr-other-text {
-    margin-left: 1em; 
+    margin-left: 1em;
     margin-top: 2px; i
 }
 

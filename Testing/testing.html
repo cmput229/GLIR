@@ -1,0 +1,181 @@
+<!-- saved from url=(0061)https://ro-s-web-p-02.registrar.ualberta.ca/connect/index.php -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<noscript>
+        <meta http-equiv="refresh" content="0;url=noscript.html">
+</noscript>
+<title>GLIR - Testing</title>
+
+
+<script src="../css_files/jquery.min.js"></script>
+<script src="../css_files/jquery-ui.min.js"></script>
+<script src="../css_files/bootstrap.min.js"></script>
+<script src="../css_files//main.js"></script>
+
+<link href="../css_files/bootstrap.min.css" rel="stylesheet">
+<link href="../css_files/custom.css" rel="stylesheet">
+<link href="../css_files/font-awesome.min.css" rel="stylesheet">
+<link href="../css_files/jquery-ui.min.css" rel="stylesheet">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!--
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+-->
+
+</head>
+<body style="margin: 1rem">
+
+<div class="banner container-fluid">
+    <div class="container text-center banner-logo"><a href="http://www.ualberta.ca/"><img src="../css_files/logo-reverse.png"></a>
+    </div>
+</div>
+
+
+<div class="container-fluid">
+    <h1 class="greentext"><strong>GLIR - Testing</strong></h1>
+        <p>Below are recordings of the expected output of the various tests and examples included in the GLIR library. You can use these videos to check if GLIR is working correctly with the terminal or simulator you choose to use. You can fullscreen the embedded videos or find the sources in GLIR/Resources.</p>
+
+    <h2 class="greentext">Tests</h3>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-2"></div>
+            <div class="col-xs-8">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video autoplay loop controls muted class="embed-responsive-item">
+                        <source src="../Resources/primitives.mp4" type="video/mp4">
+
+                        There should be a video here. Sorry, your browser doesn't support embedded videos.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+            <dl><code-ref>primitives.s:</code-ref>
+            <p>A test for the GLIR_PrintLine, GLIR_PrintRect, and GLIR_PrintTriangle
+               primitives. Checks printing of both minimal and larger size shape prints.
+               Checks out of bounds printing. Checks stacking of shapes. Checks that the
+               order that points are specififed for GLIR_PrintLine is irrelevant to the
+               end drawing. Checks that providing a string to use for printing primitives
+               works as intended.<br><br>
+
+               Note that many shapes look much better when drawn larger. Small shapes will
+               suffer from the restrictions of printing to a terminal (terminals and fonts
+               are not square even if they are monospace, thus a square grid renders a
+               rectangular shape) and the alignment of how characters are printed may look
+               off.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-3"></div>
+            <div class="col-xs-6">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video autoplay loop controls muted class="embed-responsive-item">
+                        <source src="../Resources/restoreClear.mp4" type="video/mp4">
+
+                            There should be a video here. Sorry, your browser doesn't support embedded videos.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+            <dl><code-ref>restoreClear.s:</code-ref>
+            <p>A test for the GLIR_RestoreSettings and GLIR_ClearScreen functionalities of
+               the library. Alternates printing a line of unicode block characters and a
+               line of text. The unicode characters are printed with different foreground
+               colors and the text is printed on black background with different foreground
+               colors. After a delay resets the terminal's color settings using
+               GLIR_RestoreSettings and clears the screen using GLIR_ClearScreen. With the
+               restored color settings, prints one final line of text which should be in
+               the color of the default terminal settings.</p>
+            </div>
+        </div>
+
+            <div class="row">
+            <div class="col-xs-3"></div>
+            <div class="col-xs-6">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video autoplay loop controls muted class="embed-responsive-item">
+                        <source src="../Resources/defaultPrint.mp4" type="video/mp4">
+
+                            There should be a video here. Sorry, your browser doesn't support embedded videos.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+            <dl><code-ref>defaultPrint.s:</code-ref>
+            <p>A test for the GLIR_BatchPrint print code 1 functionality (standard print,
+               default terminal settings). Meant to print three characters diagonally. The
+               first character is printed with print code 4 and non-default terminal
+               background and foreground colors. The next two characters are printed with
+               print code 1 and should be printed with terminal default background and
+               foreground colors regardless of the colors specified in their respective jobs.</p>
+            </div>
+        </div>
+
+    </div>
+    <h2 class="greentext">Demos</h3>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-2"></div>
+            <div class="col-xs-8">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video autoplay loop controls muted class="embed-responsive-item">
+                        <source src="../Resources/colorDemo.mp4" type="video/mp4">
+
+                            There should be a video here. Sorry, your browser doesn't support embedded videos.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+            <dl><code-ref>colorDemo.s:</code-ref>
+            <p>A demo meant to show off a subroutine created for GLIR called GLIR_ColorDemo.
+               This demo attempts to print the 16-256 color gamut of the terminal. It prints
+               40 rows of 6 unicode full block char starting at color 16 and incrementing
+               the color after each print. This demo's source code illustrates how easy it is
+               to create beautiful displays on the terminal using GLIR's subroutines.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-2"></div>
+            <div class="col-xs-8">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video autoplay loop controls muted class="embed-responsive-item">
+                        <source src="../Resources/demo.mp4" type="video/mp4">
+
+                            There should be a video here. Sorry, your browser doesn't support embedded videos.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-8">
+            <dl><code-ref>demo.s:</code-ref>
+            <p>A demo meant to show off GLIR's basic functions (GLIR_BatchPrint,
+               GLIR_PrintString, and GLIR_PrintCircle). First, iterates through printable
+               characters and colors while performing a batch print between each iteration.
+               Next, uses GLIR_PrintString to carve out a message (HI!). Lastly, performs a
+               series of calls to GLIR_PrintCircle. The circle is meant to appear to spread
+               towards the edges of the terminal eventually going off screen. Looking at this
+               demo's source code can give one a good idea of how GLIR is meant to be
+               started/stopped as well as how one can use the various methods of printing
+               jobs.</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

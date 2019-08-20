@@ -25,13 +25,13 @@
 # default terminal settings). Meant to print three characters diagonally. The
 # first character is printed with print code 4 and non-default terminal
 # background and foreground colors. The next two characters are printed with
-# print code 1 and should be printed with termianl default background and
-# foreground regardless of the colors specified in their respective jobs.
+# print code 1 and should be printed with terminal default background and
+# foreground colors regardless of the colors specified in their respective jobs.
 #
 # Use the runDefaultPrint shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../GLIR.s"
+.include        "../../src/GLIR.s"
 
 .data
 # Here we store the RARS syscall service numbers which are needed.

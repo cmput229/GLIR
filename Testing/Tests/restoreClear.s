@@ -22,16 +22,18 @@
 # Date: June 2019
 #-------------------------------------------------------------------------------
 # A test for the GLIR_RestoreSettings and GLIR_ClearScreen functionalities of
-# the library. Prints three lines of unicode block characters with different
-# foreground colors seperated by 3 lines of text on black backgrounds and
-# different foreground colors. Resets terminal color settings using
+# the library. Alternates printing a line of unicode block characters and a
+# line of text. The unicode characters are printed with different foreground
+# colors and the text is printed on black background with different foreground
+# colors. After a delay resets the terminal's color settings using
 # GLIR_RestoreSettings and clears the screen using GLIR_ClearScreen. With the
-# restored color settings, prints one final line of text.
+# restored color settings, prints one final line of text which should be in
+# the color of the default terminal settings.
 #
 # Use the runRestoreClear shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../GLIR.s"
+.include        "../../src/GLIR.s"
 
 .data
 # Here we store the RARS syscall service numbers which are needed.
