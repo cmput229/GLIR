@@ -45,7 +45,7 @@
 <h2 class="greentext">Access to the Code</h2>
 <p>The source code for GLIR can be found at: <a href="https://github.com/cmput229/GLIR">https://github.com/cmput229/GLIR</a>.</p>
 <h2 class="greentext">Access to the API Reference</h2>
-<p>Some high-level library useage is presented here; for a list of all public subroutines and their useage/requirements, refer to GLIR's reference at: <a href="docs/reference.html">https://github.com/cmput229/GLIR/docs/reference</a>.</p>
+<p>Some high-level library useage is presented here; for a list of all public subroutines and their useage/requirements, refer to GLIR's reference at: <a href="docs/reference.html">https://cmput229.github.io/GLIR/docs/reference</a>.</p>
 <h2 class="greentext">License</h2>
 <p>GLIR is free to use, available under the MIT license. Attribution under this license is not required, but always appreciated.</p>
 <h2 class="greentext">Dependencies</h2>
@@ -384,7 +384,7 @@
 </tr>
 </tbody></table>
 <h2 class="greentext">Testing</h2>
-<p>Demonstrations of the expected output of the tests/demos, which are included with this library, can be found at: <a href="Testing/testing.html">https://github.com/cmput229/GLIR/Testing/testing</a>.</p>
+<p>Demonstrations of the expected output of the tests/demos, which are included with this library, can be found at: <a href="Testing/testing.html">https://cmput229.github.io/GLIR/Testing/testing</a>.</p>
 
 <h2 class="greentext">Additional Notes</h2>
 <p>If you create new subroutines or have any suggestions feel free to make a pull request and we will consider incorporating it. For any questions or problems with GLIR please create an issue on the repository. The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
