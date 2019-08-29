@@ -1,16 +1,11 @@
-# This is a simple busywait implementation of sleep for RARS made in the event
-# that the sleep syscall cannot be used (ie. if you are using threads).
-
-# # Useage
-# # Wait 5 seconds
-#        li      a0, 5000
-#        jal     Sleep
-
 #-------------------------------------------------------------------------------
 # Sleep
 # Args:     a0 = the number of milliseconds to sleep
 #
 # Waits the specified number of milliseconds (very roughly) by doing nothing.
+#
+# This is a simple busywait implementation of sleep for RARS made in the event
+# that the sleep syscall cannot be used (ie. if you are using threads).
 #-------------------------------------------------------------------------------
 Sleep:
         Sleep_OutterLoop:
