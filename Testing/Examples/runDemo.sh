@@ -4,7 +4,7 @@
 #
 # Useage:   ./runDemo.sh path/to/rars.jar
 #
-# Runs the demo.s file by passing to RARS for assembly and simulation.
+# Runs the demo.S file by passing to RARS for assembly and simulation.
 # Requires that the path to a RARS installation be provided.
 #
 # The commands used are the following:
@@ -14,4 +14,4 @@
 # me:   display RARS messages to standard err instead of standard out. Allows
 #       you to separate RARS messages from program output using redirection.
 
-java -jar $1 sm nc me demo.s
+java -jar $1 sm nc me demo.S

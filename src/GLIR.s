@@ -54,11 +54,6 @@
 .align 2
 # GLOBALS
 
-# Here we store the RARS syscall service numbers which are needed.
-# Before a syscall we load from the label.
-# They are saved and loaded in this way to promote code portability.
-_PRINT_STRING:  .word 4
-
 # These tell GLIR how big the terminal is currently.
 # The setter for these values is _GLIR_SetDisplaySize.
 # They are used to prevent off screen printing in the positive direction

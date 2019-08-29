@@ -31,14 +31,7 @@
 # Use the runDefaultPrint shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.s"
-
-.data
-# Here we store the RARS syscall service numbers which are needed.
-# Before a syscall we load from the label.
-# They are saved and loaded in this way to promote code portability.
-_EXIT:          .word 10
-_SLEEP:         .word 32
+.include        "../../src/GLIR.S"
 
 # Three 'char' variables because each unqiue character we want to print needs to
 # pass an address containing the string to print for the GLIR_BatchPrint job.

@@ -36,14 +36,7 @@
 # Use the runDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.s"
-
-.data
-# Here we store the RARS syscall service numbers which are needed.
-# Before a syscall we load from the label.
-# They are saved and loaded in this way to promote code portability.
-_EXIT:          .word 10
-_SLEEP:         .word 32
+.include        "../../src/GLIR.S"
 
 Char:           .asciz " "
 
