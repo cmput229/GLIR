@@ -41,7 +41,7 @@
 	<p><small>Converted for RISC-V: Taylor Zowtuk, May 2019</small></p>
 <hr />
 <h2 class="greentext">Information</h2>
-<p>GLIR is a collection of subroutines to emulate graphics and it is meant for use with RARS and the Xfce Terminal Emulator. Although most UNIX-system terminals will work, the Xfce terminal was the only used for extensive testing during development (tests/examples also appear to work using GNOME Terminal). The true requirement is that the terminal emulator be DEC VT220 compliant. If the terminal emulator is not compliant GLIR subroutines will produce a bunch of garbled text. The purpose of GLIR is to abstract away the <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">terminal escape sequences</a> into an organized library that allows beginner assembly programmers to include visual elements in their work. GLIR has been modified from the original <a href="https://github.com/cmput229/GLIM">GLIM library</a> to be used with the RISC-V ISA.</p>
+<p>GLIR is a collection of subroutines to emulate graphics and it is meant for use with RARS and the Xfce Terminal Emulator. Although most UNIX-system terminals will work, the Xfce terminal was the only used for extensive testing during development (tests/examples also appear to work using GNOME Terminal). The true requirement is that the terminal emulator be <a href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">DEC VT220</a> compliant. If the terminal emulator is not compliant GLIR subroutines will produce a bunch of garbled text. The purpose of GLIR is to abstract away the <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">terminal escape sequences</a> into an organized library that allows beginner assembly programmers to include visual elements in their work. GLIR has been modified from the original <a href="https://github.com/cmput229/GLIM">GLIM library</a> to be used with the RISC-V ISA.</p>
 <h2 class="greentext">Access to the Code</h2>
 <p>The source code for GLIR can be found at: <a href="https://github.com/cmput229/GLIR">https://github.com/cmput229/GLIR</a>.</p>
 <h2 class="greentext">Access to the API Reference</h2>
@@ -390,11 +390,12 @@
 <p>If you create new subroutines or have any suggestions feel free to make a pull request and we will consider incorporating it. For any questions or problems with GLIR please create an issue on the repository. The purpose of GLIR is to abstract out the escape codes that move the cursor and change printing styles into a workable graphics package. Some terminal emulators allow more advanced capabilities that are not currently implemented in GLIR. Your terminal emulators' escape-code documentation contains information about such capabilities. A hint for those wanting to create animations or more pretty graphics - there is no character that can be printed that covers an entire grid space in most default fonts. The unicode 'full block' character <code>&#x2588;</code> makes for a great pixel element in most printing cases but leaves a sliver of space above and below but not side to side. If you find a square font where the full block covers, please let me know and I will look into including support for it in GLIR. A hacky method is to set the color of the background and print a space (" ") but this can effect <code>GLIR_ClearScreen</code> because it will set the entire screen to the current background color.</p>
 
 <h2 class="greentext">Contributions</h2>
-<p><a href="https://github.com/AustinGrey">AustinGrey</a>: Creator of GLIM.</p>
-<p><a href="https://github.com/TaylorZowtuk">TaylorZowtuk</a>: Converted GLIM to GLIR; implemented GLIR_PrintLine/PrintTriangle/PrintRect; created tests; various bugfixes; expanded documentation.</p>
-<p><a href="https://github.com/zacharyselk">zacharyselk</a>: Bugfixed GLIR_PrintCircle; reviewed and tested GLIR; provided guidance on library software practices throughout conversion</p>
-<p><a href="https://github.com/rmnattas">rmnattas</a>: Reviewed and tested GLIR.</p>
-<p><a href="https://github.com/mehrabmehdi">mehrabmehdi</a>: Reviewed and tested GLIR.</p>
+<p>Thanks to: 	<a href="https://github.com/AustinGrey">AustinGrey</a>,
+				<a href="https://github.com/TaylorZowtuk">TaylorZowtuk</a>,
+				<a href="https://github.com/zacharyselk">zacharyselk</a>,
+				<a href="https://github.com/rmnattas">rmnattas</a>, and
+				<a href="https://github.com/mehrabmehdi">mehrabmehdi</a>
+for their contributions to GLIR!</p>
 
 </div>
 </body>
