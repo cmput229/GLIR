@@ -44,6 +44,10 @@
                 <li><b><a href="#Restore">GLIR_RestoreSettings</a></b></li>
                 <li><b><a href="#Clear">GLIR_ClearScreen</a></b></li>
                 <li><b><a href="#Set">GLIR_SetColor</a></b></li>
+                <li><b><a href="#WaitCycle">WaitCycle</a></b></li>
+                <li><b><a href="#WaitCycle64">WaitCycle64</a></b></li>
+                <li><b><a href="#WaitSec">WaitSec</a></b></li>
+                <li><b><a href="#WaitMilli">WaitMilli</a></b></li>
             </ul>
         </li>
         <li><b><a href="#Printing">Printing</a></b>
@@ -150,6 +154,77 @@
                         <br>
                         xfce4-terminal supports 256 color lookup table assignment; see the <a href="../index.html#Color">index</a> or<br>
                         <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a> for a list of color codes.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="WaitCycle" style="margin-left: 2em">
+                <dl><code-ref>WaitCycle:</code-ref>
+                    <blockquote>
+                        <i>.import "src/Sleep.S"</i><br><br>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = The number of clock cycles to wait</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Performs a busy-wait ending after a0 clock cycles have passed.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="WaitCycle64" style="margin-left: 2em">
+                <dl><code-ref>WaitCycle64:</code-ref>
+                    <blockquote>
+                        <i>.import "src/Sleep.S"</i><br><br>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = The lower 32 bits for the amount of clock cycles to wait<br>
+                                &emsp;a1 = The upper 32 bits for the amount of clock cycles to wait</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Performs a busy-wait ending after a0 clock cycles have passed.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="WaitSec" style="margin-left: 2em">
+                <dl><code-ref>WaitSec:</code-ref>
+                    <blockquote>
+                        <i>.import "src/Sleep.S"</i><br><br>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = The number of seconds to wait</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Performs a busy-wait ending after a0 sec have passed.<br>
+                        <br>
+                        Bugs: The wait time is only accurate if the clock speed is at the default 16<br>
+                        MHz.
+                    </dl></div>
+                    </blockquote>
+                </dl>
+            </div>
+            <div id="WaitMilli" style="margin-left: 2em">
+                <dl><code-ref>WaitMilli:</code-ref>
+                    <blockquote>
+                        <i>.import "src/Sleep.S"</i><br><br>
+                    <div><dl>
+                    <dt>Args:</dt>
+                            <dd>&emsp;a0 = The number of milliseconds to wait</dd>
+                        <br>
+                    <dt>Returns:</dt>
+                            <dd>&emsp;N/A</dd>
+                        <br>
+                        Performs a busy-wait ending after a0 millisec have passed.<br>
+                        <br>
+                        Bugs: The wait time is only accurate if the clock speed is at the default 16<br>
+                        MHz.
                     </dl></div>
                     </blockquote>
                 </dl>
