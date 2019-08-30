@@ -69,7 +69,7 @@
             <div id="Start" style="margin-left: 2em">
                 <dl><code-ref>GLIR_Start:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Number of rows to set the screen to<br>
@@ -89,7 +89,7 @@
             <div id="End" style="margin-left: 2em">
                 <dl><code-ref>GLIR_End:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;N/A</dd>
@@ -107,7 +107,7 @@
             <div id="Restore" style="margin-left: 2em">
                 <dl><code-ref>GLIR_RestoreSettings:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;N/A</dd>
@@ -124,7 +124,7 @@
             <div id="Clear" style="margin-left: 2em">
                 <dl><code-ref>GLIR_ClearScreen:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;N/A</dd>
@@ -140,7 +140,7 @@
             <div id="Set" style="margin-left: 2em">
                 <dl><code-ref>GLIR_SetColor:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Color code (see <a href="../index.html#Color">index</a> or <a href="https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit">wiki</a>)<br>
@@ -161,7 +161,7 @@
             <div id="WaitCycle" style="margin-left: 2em">
                 <dl><code-ref>WaitCycle:</code-ref>
                     <blockquote>
-                        <i>.import "src/Sleep.S"</i><br><br>
+                        <i>.include "src/Sleep.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = The number of clock cycles to wait</dd>
@@ -177,7 +177,7 @@
             <div id="WaitCycle64" style="margin-left: 2em">
                 <dl><code-ref>WaitCycle64:</code-ref>
                     <blockquote>
-                        <i>.import "src/Sleep.S"</i><br><br>
+                        <i>.include "src/Sleep.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = The lower 32 bits for the amount of clock cycles to wait<br>
@@ -194,7 +194,7 @@
             <div id="WaitSec" style="margin-left: 2em">
                 <dl><code-ref>WaitSec:</code-ref>
                     <blockquote>
-                        <i>.import "src/Sleep.S"</i><br><br>
+                        <i>.include "src/Sleep.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = The number of seconds to wait</dd>
@@ -213,7 +213,7 @@
             <div id="WaitMilli" style="margin-left: 2em">
                 <dl><code-ref>WaitMilli:</code-ref>
                     <blockquote>
-                        <i>.import "src/Sleep.S"</i><br><br>
+                        <i>.include "src/Sleep.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = The number of milliseconds to wait</dd>
@@ -236,7 +236,7 @@
             <div id="PrintString" style="margin-left: 2em">
                 <dl><code-ref>GLIR_PrintString:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Address of string to print<br>
@@ -272,7 +272,7 @@
             <div id="Batch" style="margin-left: 2em">
                 <dl><code-ref>GLIR_BatchPrint:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Address of batch list to print</dd>
@@ -323,7 +323,7 @@
             <div id="PrintLine" style="margin-left: 2em">
                 <dl><code-ref>GLIR_PrintLine:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Row1<br>
@@ -350,7 +350,7 @@
             <div id="PrintTriangle" style="margin-left: 2em">
                 <dl><code-ref>GLIR_PrintTriangle:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Row1<br>
@@ -380,7 +380,7 @@
             <div id="PrintRect" style="margin-left: 2em">
                 <dl><code-ref>GLIR_PrintRect:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Row of top left corner<br>
@@ -410,7 +410,7 @@
             <div id="PrintCircle" style="margin-left: 2em">
                 <dl><code-ref>GLIR_PrintCircle:</code-ref>
                     <blockquote>
-                        <i>.import "src/GLIR.S"</i><br><br>
+                        <i>.include "src/GLIR.S"</i><br><br>
                     <div><dl>
                     <dt>Args:</dt>
                             <dd>&emsp;a0 = Row to print at<br>
