@@ -161,42 +161,50 @@ main:
         li      t1, 0x20
         sw      t1, 0(a0)
 
-        # We're going to be hacky to save space
-        # GLIR_PrintString doesn't overwrite a0 so lets not redefine it between
-        # calls
         li      a1, 0
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 5
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 6
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 0
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 7
         jal     ra, GLIR_PrintString            # Done printing H
@@ -210,44 +218,57 @@ main:
         li      a1, 0
         li      a2, 9
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 9
         jal     ra, GLIR_PrintString
 
+        la      a0, Char
         li      a1, 0
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 0
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 11
         jal     ra, GLIR_PrintString
 
+        la      a0, Char
         li      a1, 0
         li      a2, 12
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 12
         jal     ra, GLIR_PrintString            # Done printing "I"
@@ -261,12 +282,15 @@ main:
         li      a1, 0
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 15
         jal     ra, GLIR_PrintString            # Done printing "!"
