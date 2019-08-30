@@ -33,20 +33,22 @@
 # are not square even if they are monospace, thus a square grid renders a
 # rectangular shape) and the alignment of how characters are printed may look
 # off.
-#
-# Use the runPrimitives shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.S"
+.include        "GLIR.S"
+.include        "Sleep.S"
 
+.data
 # Chars to use to test whether specifying a string to print with works
 VerticalBar:    .asciz "|"
 .align 2
 Hash:           .asciz "#"
 .align 2
 ForwardSlash:   .asciz "/"
+
+#.global main
 .text
-main:
+#main:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
@@ -91,10 +93,8 @@ main:
 
         # Wait 1 second to illustrate how printing primitives on top of each
         # other will print the most recent primitive over the older
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         # Print a triangle similar to above with one point on screen and two
         # points out of bounds
@@ -109,10 +109,8 @@ main:
         jal     GLIR_PrintTriangle
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Lines
         # Print smallest line segments with two unique points
@@ -178,10 +176,8 @@ main:
         jal     GLIR_PrintLine
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Lines with varying delta
         # Order of execution of the GLIR_PrintLine subroutine can execute
@@ -222,10 +218,8 @@ main:
 
         # Print a crossing pattern
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
         addi    a0, zero, 0
         addi    a1, zero, 27
         addi    a2, zero, 6
@@ -234,10 +228,8 @@ main:
         add     a5, zero, zero
         jal     GLIR_PrintLine
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
         addi    a0, zero, 6
         addi    a1, zero, 27
         addi    a2, zero, 0
@@ -246,10 +238,8 @@ main:
         add     a5, zero, zero
         jal     GLIR_PrintLine
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
         addi    a0, zero, 3
         addi    a1, zero, 27
         addi    a2, zero, 3
@@ -258,10 +248,8 @@ main:
         add     a5, zero, zero
         jal     GLIR_PrintLine
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
         addi    a0, zero, 0
         addi    a1, zero, 32
         addi    a2, zero, 6
@@ -270,10 +258,8 @@ main:
         add     a5, zero, zero
         jal     GLIR_PrintLine
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
 
         # Check that GLIR_PrintLine correctly prints non-default string
         addi    a0, zero, 0
@@ -285,10 +271,8 @@ main:
         jal     GLIR_PrintLine
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Rectangles
         addi    a0, zero, 9                     # Row
@@ -420,10 +404,8 @@ main:
         jal     GLIR_PrintRect
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Triangles
         # Print smallest triangles possible with three unique points
@@ -502,10 +484,8 @@ main:
         jal     GLIR_PrintTriangle
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Larger triangles
         addi    a0, zero, 21
@@ -568,10 +548,8 @@ main:
         jal     GLIR_PrintTriangle
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         ## Fill empty space with long diagonal lines
         # 89 is 90th column
@@ -580,10 +558,8 @@ main:
 
         FillLoop:
         # Wait 0.1 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 100
-        ecall
+        jal     ra, WaitMilli
         # If Col1 <= 89 || Row2 >= 0
         addi     t0, s2, -1                     # Last column is ScreenColumns
                                                 # - 1
@@ -603,10 +579,8 @@ main:
 
         DoneFill:
         # Wait 0.5 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
 
         ## Layering shapes into a design
         addi    s7, zero, 196                   # Colors ; to distinguish prints
@@ -622,10 +596,8 @@ main:
         bge     s10, t0, DoneRects
 
         # Wait 0.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
 
         # Draw a rectangle up to edge of screen or last rectangle
         add     a0, s9, zero                    # Row
@@ -643,10 +615,8 @@ main:
         jal     zero, RectLoop
 
         DoneRects:
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
         ## Positive bounds check
         # Check if the primitives correctly handle points being out of bounds in
         # the positive directions; ie. they dont print anything
@@ -661,10 +631,8 @@ main:
         jal     GLIR_PrintRect
 
         # Wait 1 second
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         # Print a triangle similar to above with one point on screen and two
         # points out of bounds
@@ -679,10 +647,8 @@ main:
         jal     GLIR_PrintTriangle
 
         # Wait 5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 5000
-        ecall
+        jal     ra, WaitMilli
 
         jal     ra, GLIR_End
 
@@ -704,6 +670,4 @@ main:
         addi    sp, sp, 4
 
         # Exit program
-        la      a7, _EXIT
-        lw      a7, 0(a7)
-        ecall
+        jalr    zero, ra, 0

@@ -48,7 +48,11 @@
 # https://github.com/TheThirdOne/rars
 #
 # TODO: Add fill subroutines to fill the primitves.
+# TODO: Port Printff from c to RISC-V
 #-------------------------------------------------------------------------------
+
+# NOTE: Printff.h is automatically compiled and included in the global space of
+# the program
 
 .data
 .align 2
@@ -63,7 +67,6 @@ _TERM_COLS:     .word -1
 
 # PUBLIC
 .text
-        jal     zero, main                      # Don't enter lib unless asked
 #-------------------------------------------------------------------------------
 # GLIR_Start
 # Args:     a0 = Number of rows to set the screen to
@@ -142,11 +145,14 @@ RestoreSettings_String: .byte 0x1b, 0x5b, 0x30, 0x6d, 0x00
 # terminal.
 #-------------------------------------------------------------------------------
 GLIR_RestoreSettings:
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
-        la      a0, RestoreSettings_String
-        ecall
+        addi    sp, sp, -4
+        sw      ra, 0(sp)
 
+        la      a0, RestoreSettings_String
+        jal     ra, _printff
+
+        lw      ra, 0(sp)
+        addi    sp, sp, 4
         jalr    zero, ra, 0
 
 .data
@@ -159,17 +165,20 @@ ClearScreen_String: .byte 0x1b, 0x5b, 0x32, 0x4a, 0x00
 # Print the escape sequence that clears the screen.
 #-------------------------------------------------------------------------------
 GLIR_ClearScreen:
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
-        la      a0, ClearScreen_String
-        ecall
+        addi    sp, sp, -4
+        sw      ra, 0(sp)
 
+        la      a0, ClearScreen_String
+        jal     ra, _printff
+
+        lw      ra, 0(sp)
+        addi    sp, sp, 4
         jalr    zero, ra, 0
 
 .data
 .align 2
-SetColor_String:    .byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30,
-                    0x30, 0x30, 0x6d, 0x00
+SetColor_String:    .byte 0x1b, 0x5b, 0x30, 0x38, 0x3b, 0x35, 0x3b, 0x30, 0x30
+                    .byte 0x30, 0x30, 0x6d, 0x00
 .text
 #-------------------------------------------------------------------------------
 # GLIR_SetColor
@@ -222,10 +231,8 @@ GLIR_SetColor:
         SetColor_Set:
         sb      t1, 2(t0)
 
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
         addi    a0, t0, 0
-        ecall
+        jal     ra, _printff
 
         # Stack Restore
         lw      ra, -4(s0)
@@ -296,10 +303,8 @@ GLIR_PrintString:
         jal     ra, _GLIR_SetCursor
 
         # Print the char
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
         addi    a0, s1, 0
-        ecall
+        jal     ra, _printff
 
         PrintString_End:
         # Stack Restore
@@ -579,7 +584,7 @@ GLIR_PrintLine:
 
                 PrintLine_CheckCol:
                 # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++;
-                # else y--;
+                # Else y--;
                 bge     s1, zero, PrintLine_RowOr       # If DRow >= 0 goto...
                 blt     s2, zero, PrintLine_IncCol      # If DCol < 0 goto...
 
@@ -649,7 +654,7 @@ GLIR_PrintLine:
 
                 PrintLine_CheckRow:
                 # If ((DRow < 0 && DCol < 0) || (DRow > 0 && DCol > 0)) y++;
-                # else y--;
+                # Else y--;
                 bge     s1, zero, PrintLine_ColOr       # If DRow >= 0 goto...
                 blt     s2, zero, PrintLine_IncRow      # If DCol < 0 goto...
 
@@ -1154,11 +1159,14 @@ HideCursor_String:  .byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x6c, 0x00
 # Prints the escape sequence that hides the cursor.
 #-------------------------------------------------------------------------------
 _GLIR_HideCursor:
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
-        la      a0, HideCursor_String
-        ecall
+        addi    sp, sp, -4
+        sw      ra, 0(sp)
 
+        la      a0, HideCursor_String
+        jal     ra, _printff
+
+        lw      ra, 0(sp)
+        addi    sp, sp, 4
         jalr    zero, ra, 0
 
 .data
@@ -1171,17 +1179,20 @@ ShowCursor_String:  .byte 0x1b, 0x5b, 0x3f, 0x32, 0x35, 0x68, 0x00
 # Prints the escape sequence that restores the cursor visibility.
 #-------------------------------------------------------------------------------
 _GLIR_ShowCursor:
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
-        la      a0, ShowCursor_String
-        ecall
+        addi    sp, sp, -4
+        sw      ra, 0(sp)
 
+        la      a0, ShowCursor_String
+        jal     ra, _printff
+
+        lw      ra, 0(sp)
+        addi    sp, sp, 4
         jalr    zero, ra, 0
 
 .data
 .align 2
-SetCursor_String:   .byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30,
-                    0x30, 0x30, 0x48, 0x00
+SetCursor_String:   .byte 0x1b, 0x5b, 0x30, 0x30, 0x30, 0x30, 0x3b, 0x30, 0x30
+                    .byte 0x30, 0x30, 0x48, 0x00
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_SetCursor
@@ -1241,10 +1252,8 @@ _GLIR_SetCursor:
         sb      t0, 7(t2)
 
         # Move the cursor
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
         la      a0, SetCursor_String
-        ecall
+        jal     ra, _printff
 
         # Stack Restore
         lw      ra, -4(s0)
@@ -1258,8 +1267,8 @@ _GLIR_SetCursor:
 
 .data
 .align 2
-SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30,
-                        0x3b, 0x30, 0x30, 0x30, 0x30, 0x74, 0x00
+SetDisplaySize_String:  .byte 0x1b, 0x5b, 0x38, 0x3b, 0x30, 0x30, 0x30, 0x30
+                        .byte 0x3b, 0x30, 0x30, 0x30, 0x30, 0x74, 0x00
 .text
 #-------------------------------------------------------------------------------
 # _GLIR_SetDisplaySize
@@ -1327,10 +1336,8 @@ _GLIR_SetDisplaySize:
         lb      t1, 3(a0)
         sb      t1, 9(t0)
 
-        la      a7, _PRINT_STRING
-        lw      a7, 0(a7)
         addi    a0, t0, 0
-        ecall
+        jal     ra, _printff
 
         SetDisplaySize_End:
         # Stack Restore

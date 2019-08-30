@@ -27,12 +27,12 @@
 # background and foreground colors. The next two characters are printed with
 # print code 1 and should be printed with terminal default background and
 # foreground colors regardless of the colors specified in their respective jobs.
-#
-# Use the runDefaultPrint shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.S"
+.include        "GLIR.S"
+.include        "Sleep.S"
 
+.data
 # Three 'char' variables because each unqiue character we want to print needs to
 # pass an address containing the string to print for the GLIR_BatchPrint job.
 Char1:          .asciz " "
@@ -43,8 +43,10 @@ Char3:          .asciz " "
 .align 2
 # Three jobs and a null terminator 3 * 12 + 2
 PrintList:      .space 38
+
+#.global main
 .text
-main:
+#main:
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
         add     s0, zero, sp                    # fp <- sp
@@ -126,10 +128,8 @@ main:
         jal     ra, GLIR_BatchPrint
 
         # Wait 2.5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 2500
-        ecall
+        jal     ra, WaitMilli
 
         jal     ra, GLIR_End
 
@@ -140,6 +140,4 @@ main:
         addi    sp, sp, 4
 
         # Exit program
-        la      a7, _EXIT
-        lw      a7, 0(a7)
-        ecall
+        jalr    zero, ra, 0

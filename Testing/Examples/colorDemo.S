@@ -26,14 +26,14 @@
 # 40 rows of 6 unicode full block char starting at color 16 and incrementing
 # the color after each print. This demo's source code illustrates how easy it is
 # to create beautiful displays on the terminal using GLIR's subroutines.
-#
-# Use the runColorDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.S"
+.include        "GLIR.S"
+.include        "Sleep.S"
 
+#.global main
 .text
-main:
+#main:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
@@ -49,10 +49,8 @@ main:
         jal     ra, GLIR_ColorDemo
 
         # Wait 5 seconds to admire
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 5000
-        ecall
+        jal     ra, WaitMilli
 
         jal     ra, GLIR_End
 
@@ -63,9 +61,7 @@ main:
         addi    sp, sp, 4
 
         # Exit program
-        la      a7, _EXIT
-        lw      a7, 0(a7)
-        ecall
+        jalr    zero, ra, 0
 
 .data
 .align 2

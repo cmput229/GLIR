@@ -1,2 +1,5 @@
 # Jekyll builds
 _site
+
+# Visual Studio Code
+.vscode/

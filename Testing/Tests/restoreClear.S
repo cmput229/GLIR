@@ -23,18 +23,18 @@
 #-------------------------------------------------------------------------------
 # A test for the GLIR_RestoreSettings and GLIR_ClearScreen functionalities of
 # the library. Alternates printing a line of unicode block characters and a
-# line of text. The unicode characters are printed with different foreground
+# `line of text. The unicode characters are printed with different foreground
 # colors and the text is printed on black background with different foreground
 # colors. After a delay resets the terminal's color settings using
 # GLIR_RestoreSettings and clears the screen using GLIR_ClearScreen. With the
 # restored color settings, prints one final line of text which should be in
 # the color of the default terminal settings.
-#
-# Use the runRestoreClear shell script to run this test.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.S"
+.include        "GLIR.S"
+.include        "Sleep.S"
 
+.data
 MessySquares:   .asciz "█ █ █████████████████ █ █"
 .align 2
 String1:        .asciz "There is a mess on the screen..."
@@ -44,8 +44,10 @@ String2:        .asciz "We should clean it up..."
 String3:        .asciz "Cleaning up now please wait..."
 .align 2
 String4:        .asciz "Reverted settings and cleared screen."
+
+#.global main
 .text
-main:
+#main:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
@@ -137,10 +139,8 @@ main:
         jal     ra, GLIR_PrintString
 
         # Wait 5 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 5000
-        ecall
+        jal     ra, WaitMilli
 
         # Restore default terminal color settings
         jal     ra, GLIR_RestoreSettings
@@ -154,10 +154,8 @@ main:
         jal     ra, GLIR_PrintString
 
         # Wait 2 seconds
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 2000
-        ecall
+        jal     ra, WaitMilli
 
         jal     ra, GLIR_End
 
@@ -168,6 +166,4 @@ main:
         addi    sp, sp, 4
 
         # Exit program
-        la      a7, _EXIT
-        lw      a7, 0(a7)
-        ecall
+        jalr    zero, ra, 0

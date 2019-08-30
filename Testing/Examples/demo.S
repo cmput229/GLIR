@@ -32,20 +32,22 @@
 # demo's source code can give one a good idea of how GLIR is meant to be
 # started/stopped as well as how one can use the various methods of printing
 # jobs.
-#
-# Use the runDemo shell script to run this demonstration.
 #-------------------------------------------------------------------------------
 
-.include        "../../src/GLIR.S"
+.include        "GLIR.S"
+.include        "Sleep.S"
 
+.data
 Char:           .asciz " "
 
 .align 2
 # Only using 1 job at a time
 # 3 words + 1 halfword (sentinel)  = 3 * 4 + 2 = 14
 PrintList:      .space 14
+
+#.global main
 .text
-main:
+#main:
         # Stack Adjustments
         addi    sp, sp, -4                      # Adjust the stack to save fp
         sw      s0, 0(sp)                       # Save fp
@@ -96,10 +98,8 @@ main:
                 jal     ra, GLIR_BatchPrint
 
                 # Wait 0.001 seconds
-                la      a7, _SLEEP
-                lw      a7, 0(a7)
                 li      a0, 1
-                ecall
+                jal     ra, WaitMilli
 
                 addi    s4, s4, 1               # Goto next Bgcolor
                 li      t0, 255
@@ -127,10 +127,8 @@ main:
 
         LoopEnd:
         # Wait
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         # Then carve out a message
         # This section shows off GLIR_PrintString; just simply printing the
@@ -160,114 +158,135 @@ main:
         li      a1, 0
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 4
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 5
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 6
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 0
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 7
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 7
         jal     ra, GLIR_PrintString            # Done printing H
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
 
         la      a0, Char
         li      a1, 0
         li      a2, 9
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 9
         jal     ra, GLIR_PrintString
 
+        la      a0, Char
         li      a1, 0
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 10
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 0
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 3
         li      a2, 11
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 11
         jal     ra, GLIR_PrintString
 
+        la      a0, Char
         li      a1, 0
         li      a2, 12
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 12
         jal     ra, GLIR_PrintString            # Done printing "I"
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 500
-        ecall
+        jal     ra, WaitMilli
 
         la      a0, Char
         li      a1, 0
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 1
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 2
         li      a2, 15
         jal     ra, GLIR_PrintString
+        la      a0, Char
         li      a1, 4
         li      a2, 15
         jal     ra, GLIR_PrintString            # Done printing "!"
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
 
 
@@ -287,10 +306,8 @@ main:
         add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         li      a0, 15
         li      a1, 30
@@ -317,10 +334,8 @@ main:
         add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         li      a0, 15
         li      a1, 30
@@ -359,10 +374,8 @@ main:
         add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         li      a0, 15
         li      a1, 30
@@ -413,10 +426,8 @@ main:
         add     a4, zero, zero
         jal     ra, GLIR_PrintCircle
 
-        la      a7, _SLEEP
-        lw      a7, 0(a7)
         li      a0, 1000
-        ecall
+        jal     ra, WaitMilli
 
         li      s1, 2                           # Radius = 2 (0 and 1 already
                                                 # covered)
@@ -481,10 +492,8 @@ main:
                 add     a4, zero, zero
                 jal     ra, GLIR_PrintCircle
 
-                la      a7, _SLEEP
-                lw      a7, 0(a7)
                 li      a0, 1000
-                ecall
+                jal     ra, WaitMilli
 
                 addi    s1, s1, 1
                 addi    s2, s2, 1
@@ -506,6 +515,4 @@ main:
         addi    sp, sp, 4
 
         # Exit program
-        la      a7, _EXIT
-        lw      a7, 0(a7)
-        ecall
+        jalr    zero, ra, 0
