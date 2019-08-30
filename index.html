@@ -51,7 +51,9 @@
 <h2 class="greentext">Dependencies</h2>
 <p>GLIR requires a serial console to be run from a DEC VT220 compliant terminal and a <a href="https://www.sifive.com/boards">SiFive RISC-V development board</a> programmed using Freedom Studio. From our tests with the HiFive1 Rev B, we found that PuTTY run from an Xfce-terminal properly accepts the escape sequences used by GLIR. The following instructions will prepare an Ubuntu system with the recommended software. Begin by performing the command <code>sudo apt-get update</code>. We can install PuTTY using the command <code>sudo apt-get install putty</code>. Install an Xfce-terminal using the command <code>sudo apt-get install xfce4-terminal</code>. Lastly, download and install <a href="https://www.sifive.com/boards#software">Freedom Studio</a>.</p>
 <h2 class="greentext">Usage</h2>
-<p>This session discusses how to start GLIR, the conceptual architecture, how the screen is updated, and support for colors.</p>
+<p>This session discusses how to begin, how to start GLIR, the conceptual architecture, how the screen is updated, and support for colors.</p>
+<h3 class="greentext">Freedom Studio Project</h3>
+<p>Use the following steps to incorporate GLIR into a new Freedom Studio project. Launch the FreedomStudio application. Create a new empty Freedom E SDK project using 'empty' as the example project. Import the contents of GLIR/src/ into YourWorkspace/YourProject/src. Create your .S project and begin it with the directive .global main; there should be only one such directive and one main: label in any file in the src/ folder.</p>
 <h3 class="greentext">Starting GLIR</h3>
 <p>Before you call any of the GLIR printing routines you  must call the following routine:</p>
 <p><code>jal&nbsp;&nbsp;&nbsp; ra, GLIR_Start<br /></code></p>
