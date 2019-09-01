@@ -42,13 +42,10 @@
 # GLIR was converted from the original GLIM which can be found here:
 # https://github.com/AustinGrey/GLIM
 #
-# Intended for use with RARS RISC-V simulator; though I have limited use of
-# pseudo instructions and made use of loading syscall service numbers from
-# labels for ease of protability.
-# https://github.com/TheThirdOne/rars
+# Currently relies on C code to replace syscalls.
 #
 # TODO: Add fill subroutines to fill the primitves.
-# TODO: Port Printff from c to RISC-V
+# TODO: Port Printff from C to RISC-V.
 #-------------------------------------------------------------------------------
 
 # NOTE: Printff.h is automatically compiled and included in the global space of
