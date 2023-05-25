@@ -718,12 +718,12 @@ PrintOVLine_Char:       .asciz " "
 #           a3 = Color to print with
 #
 # Prints an overlapping vertical line onto the screen between points (Row1, Col)
-# and (Row2, Col). It will print black on the the screen outside of the range
-# (Row1, Col) to (Row2, Col). That way, you can overlap lines and not have to
-# clear the screen to avoid seeing the previous line. This is especially useful
-# for animations with many updates. Clearing the screen every time you update
-# the screen is very slow and can cause flickering. This subroutine is designed
-# to provide an alternative for updating the screen.
+# and (Row2, Col). It will print the default background color on the the screen 
+# outside of the range (Row1, Col) to (Row2, Col). That way, you can overlap lines
+# and not have to clear the screen to avoid seeing the previous line. This is
+# especially useful for animations with many updates. Clearing the screen every
+# time you update the screen is very slow and can cause flickering. This
+# subroutine is designed to provide an alternative for updating the screen.
 #-------------------------------------------------------------------------------
 GLIR_PrintOVLine:
         # Stack Adjustments
@@ -818,12 +818,12 @@ PrintOHLine_Char:       .asciz " "
 #           a3 = Color to print with
 #
 # Prints an overlapping horizontal line onto the screen between points (Row, Col1)
-# and (Row, Col2). It will print black on the the screen outside of the range
-# (Row, Col1) to (Row, Col2). That way, you can overlap lines and not have to
-# clear the screen to avoid seeing the previous line. This is especially useful
-# for animations with many updates. Clearing the screen every time you update
-# the screen is very slow and can cause flickering. This subroutine is designed
-# to provide an alternative for updating the screen.
+# and (Row, Col2). It will print the default background color on the the screen 
+# outside of the range (Row, Col1) to (Row, Col2). That way, you can overlap lines
+# and not have to clear the screen to avoid seeing the previous line. This is
+# especially useful for animations with many updates. Clearing the screen every
+# time you update the screen is very slow and can cause flickering. This
+# subroutine is designed to provide an alternative for updating the screen.
 #-------------------------------------------------------------------------------
 GLIR_PrintOHLine:
         # Stack Adjustments
