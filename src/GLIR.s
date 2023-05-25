@@ -708,6 +708,206 @@ GLIR_PrintLine:
 
 .data
 .align 2
+PrintOVLine_Char:       .asciz " "
+.text
+#-------------------------------------------------------------------------------
+# GLIR_PrintOVLine
+# Args:     a0 = Col
+#           a1 = Row1
+#           a2 = Row2
+#           a3 = Color to print with
+#
+# Prints an overlapping vertical line onto the screen between points (Row1, Col)
+# and (Row2, Col). It will print black on the the screen outside of the range
+# (Row1, Col) to (Row2, Col). That way, you can overlap lines and not have to
+# clear the screen to avoid seeing the previous line. This is especially useful
+# for animations with many updates. Clearing the screen every time you update
+# the screen is very slow and can cause flickering. This subroutine is designed
+# to provide an alternative for updating the screen.
+#-------------------------------------------------------------------------------
+GLIR_PrintOVLine:
+        # Stack Adjustments
+	addi	sp, sp, -32
+	sw	ra, 0(sp)
+	sw	s0, 4(sp)
+	sw	s1, 8(sp)
+	sw	s2, 12(sp)
+	sw	s3, 16(sp)
+	sw	s4, 20(sp)
+	sw	s5, 24(sp)
+	sw	s6, 28(sp)
+	
+	# Variables
+	add	s0, a0, zero	# s0 <- col
+	add	s3, a3, zero	# s3 <- color
+	add	s4, zero, zero	# s4 <- counter
+	lw	s5, _TERM_ROWS	# s5 <- _TERM_ROWS
+	la	s6, PrintOVLine_Char	# s6 <- PrintOVLine_Char
+	ble	a1, a2, PrintOVLine_row1_less_than_row2	# row1 <= row2
+	# row1 > row2
+	add	s1, a2, zero	# s1 <- row2
+	add	s2, a1, zero	# s2 <- row1
+	j	PrintOVLine_print_first_section_loop
+
+	PrintOVLine_row1_less_than_row2:
+        add	s1, a1, zero	# s1 <- row1
+        add	s2, a2, zero	# s2 <- row2
+
+	# Loop
+	PrintOVLine_print_first_section_loop:
+        bge	s4, s1, PrintOVLine_print_second_section	# counter >= row1
+        add	a0, s6, zero	# a0 <- PrintOVLine_Char
+        add	a1, s4, zero	# a1 <- row
+        add	a2, s0, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOVLine_print_first_section_loop
+
+	PrintOVLine_print_second_section:
+        # Change the color
+        add	a0, s3, zero	# a0 <- color
+        add	a1, zero, zero	# a1 <- bg
+        jal	GLIR_SetColor
+
+	PrintOVLine_print_second_section_loop:
+        bgt	s4, s2, PrintOVLine_print_third_section	# counter > row2
+        # Print the second section
+        add	a0, s6, zero	# a0 <- PrintOVLine_Char
+        add	a1, s4, zero	# a1 <- row
+        add	a2, s0, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOVLine_print_second_section_loop
+
+	PrintOVLine_print_third_section:
+        # Restore color
+        jal	GLIR_RestoreSettings
+	
+	PrintOVLine_print_third_section_loop:
+        bge	s4, s5, PrintOVLine_print_end	# counter >= _TERM_ROWS
+        # Print the third section
+        add	a0, s6, zero	# a0 <- PrintOVLine_Char
+        add	a1, s4, zero	# a1 <- row
+        add	a2, s0, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOVLine_print_third_section_loop
+	
+	PrintOVLine_print_end:
+        # Stack Restore
+        lw	ra, 0(sp)
+        lw	s0, 4(sp)
+        lw	s1, 8(sp)
+        lw	s2, 12(sp)
+        lw	s3, 16(sp)
+        lw	s4, 20(sp)
+        lw	s5, 24(sp)
+        lw	s6, 28(sp)
+        addi	sp, sp, 32
+        jr	ra
+
+.data
+.align 2
+PrintOHLine_Char:       .asciz " "
+.text
+#-------------------------------------------------------------------------------
+# GLIR_PrintOHLine
+# Args:     a0 = Row
+#           a1 = Col1
+#           a2 = Col2
+#           a3 = Color to print with
+#
+# Prints an overlapping horizontal line onto the screen between points (Row, Col1)
+# and (Row, Col2). It will print black on the the screen outside of the range
+# (Row, Col1) to (Row, Col2). That way, you can overlap lines and not have to
+# clear the screen to avoid seeing the previous line. This is especially useful
+# for animations with many updates. Clearing the screen every time you update
+# the screen is very slow and can cause flickering. This subroutine is designed
+# to provide an alternative for updating the screen.
+#-------------------------------------------------------------------------------
+GLIR_PrintOHLine:
+        # Stack Adjustments
+	addi	sp, sp, -32
+	sw	ra, 0(sp)
+	sw	s0, 4(sp)
+	sw	s1, 8(sp)
+	sw	s2, 12(sp)
+	sw	s3, 16(sp)
+	sw	s4, 20(sp)
+	sw	s5, 24(sp)
+	sw	s6, 28(sp)
+	
+	# Variables
+	add	s0, a0, zero	# s0 <- col
+	add	s3, a3, zero	# s3 <- color
+	add	s4, zero, zero	# s4 <- counter
+	lw	s5, _TERM_COLS	# s5 <- _TERM_COLS
+	la	s6, PrintOHLine_Char	# s6 <- PrintOHLine_Char
+	ble	a1, a2, PrintOHLine_col1_less_than_col2	# col1 <= col2
+	# col1 > col2
+	add	s1, a2, zero	# s1 <- col2
+	add	s2, a1, zero	# s2 <- col1
+	j	PrintOHLine_print_first_section_loop
+
+	PrintOHLine_col1_less_than_col2:
+        add	s1, a1, zero	# s1 <- col1
+        add	s2, a2, zero	# s2 <- col2
+
+	# Loop
+	PrintOHLine_print_first_section_loop:
+        bge	s4, s1, PrintOHLine_print_second_section	# counter >= col1
+        add	a0, s6, zero	# a0 <- PrintOHLine_Char
+        add	a1, s0, zero	# a1 <- row
+        add	a2, s4, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOHLine_print_first_section_loop
+
+	PrintOHLine_print_second_section:
+        # Change the color
+        add	a0, s3, zero	# a0 <- color
+        add	a1, zero, zero	# a1 <- bg
+        jal	GLIR_SetColor
+
+	PrintOHLine_print_second_section_loop:
+        bgt	s4, s2, PrintOHLine_print_third_section	# counter > col2
+        # Print the second section
+        add	a0, s6, zero	# a0 <- PrintOHLine_Char
+        add	a1, s0, zero	# a1 <- row
+        add	a2, s4, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOHLine_print_second_section_loop
+
+	PrintOHLine_print_third_section:
+        # Restore color
+        jal	GLIR_RestoreSettings
+	
+	PrintOHLine_print_third_section_loop:
+        bge	s4, s5, PrintOHLine_print_end	# counter >= _TERM_COLS
+        # Print the third section
+        add	a0, s6, zero	# a0 <- PrintOHLine_Char
+        add	a1, s0, zero	# a1 <- row
+        add	a2, s4, zero	# a2 <- col
+        jal	GLIR_PrintString
+        addi	s4, s4, 1	# counter++
+        j	PrintOHLine_print_third_section_loop
+	
+	PrintOHLine_print_end:
+        # Stack Restore
+        lw	ra, 0(sp)
+        lw	s0, 4(sp)
+        lw	s1, 8(sp)
+        lw	s2, 12(sp)
+        lw	s3, 16(sp)
+        lw	s4, 20(sp)
+        lw	s5, 24(sp)
+        lw	s6, 28(sp)
+        addi	sp, sp, 32
+        jr	ra
+
+.data
+.align 2
 PrintTriangle_Char: .asciz "█"                  # Char to print with if a7 = 0
 .text
 #-------------------------------------------------------------------------------
